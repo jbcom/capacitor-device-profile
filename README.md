@@ -41,6 +41,6 @@ const profile = useDeviceProfile({ loadPlatform: () => Device.getInfo() })
 ## Develop and release
 
 `pnpm --filter @arcade-cabinet/mobile verify` runs typecheck, tests (jsdom), the dual ESM/CJS build
-and a built-tarball consumer smoke. Publishing runs from the `Publish @arcade-cabinet/mobile`
-workflow in the host repository against an immutable `mobile-v<version>` tag, then verifies the
+and a built-tarball consumer smoke. Publishing runs in the `mobile-package` job of the host repository's `release.yml`
+against the immutable `mobile-v<version>` tag release-please creates, then verifies the
 exact version anonymously from the registry.
