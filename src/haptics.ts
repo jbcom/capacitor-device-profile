@@ -8,10 +8,14 @@
 export type ImpactStrength = 'light' | 'medium' | 'heavy'
 export type NotificationKind = 'success' | 'warning' | 'error'
 
-/** The subset of Capacitor's `Haptics` plugin this module uses. Values match its enums. */
+/**
+ * The subset of Capacitor's `Haptics` plugin this module uses. The values sent are the string values
+ * of Capacitor's `ImpactStyle` and `NotificationType` enums; the fields are typed `string` so the real
+ * plugin (whose parameters are those enums) is assignable without this package importing Capacitor.
+ */
 export interface HapticsPluginLike {
-  impact(options: { style: 'LIGHT' | 'MEDIUM' | 'HEAVY' }): Promise<void>
-  notification(options: { type: 'SUCCESS' | 'WARNING' | 'ERROR' }): Promise<void>
+  impact(options?: { style?: string }): Promise<void>
+  notification(options?: { type?: string }): Promise<void>
   selectionChanged(): Promise<void>
 }
 
