@@ -52,7 +52,8 @@
     "SECURITY.md",
     "dist",
     "docs/API.md",
-    "docs/ARCHITECTURE.md"
+    "docs/ARCHITECTURE.md",
+    "src"
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
