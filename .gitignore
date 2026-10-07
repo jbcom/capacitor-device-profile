@@ -3,6 +3,7 @@ dist/
 coverage/
 *.tsbuildinfo
 *.tgz
+.agent-state/
 .agent-state/digest.md
 .agent-state/cursor.md
 .agent-state/.indexed-sha
