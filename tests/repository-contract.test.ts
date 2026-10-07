@@ -1,55 +1,99 @@
 // @vitest-environment node
 // The package's own repository is its only home: these assertions keep the manifest, the toolchain
-// and the publish path pointing at it, so a copy-paste from a host repo cannot drift back in.
-import { readFileSync } from 'node:fs'
+// and the publish path pointing at it, so a copy-paste from another repository cannot drift back in.
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const root = path.resolve(import.meta.dirname, '..')
 const read = (file: string) => readFileSync(path.join(root, file), 'utf8')
 const manifest = JSON.parse(read('package.json')) as {
-  repository: { type: string; url: string; directory?: string }
+  name: string
+  version: string
+  license: string
+  repository: { type: string; url: string }
   packageManager: string
   engines: Record<string, string>
   scripts: Record<string, string>
+  publishConfig: Record<string, unknown>
   devDependencies: Record<string, string>
 }
 
 describe('repository contract', () => {
-  it('points at arcade-cabinet/mobile and builds on the fleet toolchain', () => {
+  it('is the open-source package on npmjs, MIT, published with provenance', () => {
+    expect(manifest.name).toBe('capacitor-device-profile')
+    expect(manifest.license).toBe('MIT')
     expect(manifest.repository).toEqual({
       type: 'git',
-      url: 'https://github.com/jbcom/mobile.git',
+      url: 'git+https://github.com/jbcom/capacitor-device-profile.git',
     })
-    expect(read('.node-version').trim()).toBe('26')
+    expect(manifest.publishConfig).toEqual({ access: 'public', provenance: true })
+    expect(read('.npmrc').trim().split('\n')).toEqual([
+      'registry=https://registry.npmjs.org/',
+      'provenance=true',
+    ])
+  })
+
+  it('builds on Node 26, pnpm 12 and TypeScript 7, and runs on Node 24 and later', () => {
+    expect(read('.nvmrc').trim()).toBe('26')
+    expect(read('mise.toml')).toMatch(/node = "26"[\s\S]*pnpm = "12"/)
     expect(manifest.packageManager).toMatch(/^pnpm@12\.\d+\.\d+$/)
+    expect(manifest.devDependencies.typescript).toMatch(/^\^?7\./)
     expect(manifest.engines).toEqual({ node: '>=24' })
     expect(manifest.devDependencies['@types/node']).toMatch(/^\^?24\./)
   })
 
-  it('verifies everything in CI, including the packed consumer', () => {
-    expect(manifest.scripts.verify).toBe(
-      'pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build && pnpm run smoke:consumer',
-    )
-    expect(read('.gitea/workflows/ci.yml')).toContain('run: pnpm verify')
+  it('resolves modules the TypeScript 7 way: no node10 anywhere', () => {
+    // tsconfig.esm.json inherits the base resolution; the CommonJS build sets its own.
+    for (const file of ['tsconfig.json', 'tsconfig.cjs.json']) {
+      expect(read(file), file).toContain('"moduleResolution": "bundler"')
+    }
+    for (const file of ['tsconfig.json', 'tsconfig.esm.json', 'tsconfig.cjs.json']) {
+      expect(read(file), file).not.toMatch(/node10|"moduleResolution": "node"/)
+    }
   })
 
-  it('publishes byte-identical packs with the package-only secret and proves them anonymously', () => {
-    const release = read('.gitea/workflows/release.yml')
-    expect(release).toContain('PACKAGE: "@arcade-cabinet/mobile"')
-    // Without these labels release-please cannot find a merged release PR, so it never tags: the
-    // bootstrap must run, and run first.
-    expect(release).toMatch(
-      /run: node scripts\/ensure-release-labels\.mjs[\s\S]+?joaquinjsb\/gitea-release-please-action/,
+  it('verifies everything, including the packed package and a packed consumer', () => {
+    const verify = manifest.scripts.verify ?? ''
+    for (const step of [
+      'lint',
+      'lint:docs',
+      'typecheck',
+      'coverage',
+      'build',
+      'package:check',
+      'smoke:consumer',
+    ]) {
+      expect(verify, step).toContain(`pnpm run ${step}`)
+    }
+    expect(manifest.scripts['package:check']).toBe(
+      'publint && attw --pack . && node scripts/verify-package.mjs',
     )
-    const labels = read('scripts/ensure-release-labels.mjs')
-    expect(labels).toContain("name: 'autorelease: pending'")
-    expect(labels).toContain("name: 'autorelease: tagged'")
-    expect(release).toMatch(/git checkout --detach "refs\/tags\/[^"]+"[\s\S]+?pnpm verify/)
-    expect(release).toMatch(/cmp "\$\{RUNNER_TEMP\}"\/a\/\*\.tgz "\$\{RUNNER_TEMP\}"\/b\/\*\.tgz/)
-    expect(release).toContain('secrets.NPM_TOKEN')
-    expect(release).toMatch(
-      /MOBILE_CONSUMER_SOURCE="\$\{PACKAGE\}@\$\{\{ steps\.target\.outputs\.version \}\}" pnpm smoke:consumer/,
-    )
+    expect(read('.github/workflows/ci.yml')).toContain('run: pnpm verify')
+  })
+
+  it('publishes from cd.yml by OIDC after verifying, with no token in the repository', () => {
+    const cd = read('.github/workflows/cd.yml')
+    expect(cd).toContain('id-token: write')
+    expect(cd).toMatch(/pnpm verify[\s\S]+npm publish --access public --provenance/)
+    expect(cd).not.toMatch(/NODE_AUTH_TOKEN|NPM_TOKEN|_authToken/)
+    expect(read('.github/workflows/release.yml')).toContain('release-please-action')
+  })
+
+  it('keeps the first release at the manifest version and the tag pattern plain', () => {
+    expect(JSON.parse(read('.release-please-manifest.json'))).toEqual({ '.': manifest.version })
+    const config = JSON.parse(read('release-please-config.json')) as {
+      packages: Record<string, Record<string, unknown>>
+    }
+    expect(config.packages['.']).toMatchObject({
+      'package-name': manifest.name,
+      'include-component-in-tag': false,
+      'bump-minor-pre-major': true,
+    })
+  })
+
+  it('carries no trace of the private Gitea home', () => {
+    expect(existsSync(path.join(root, '.gitea'))).toBe(false)
+    expect(existsSync(path.join(root, 'scripts/ensure-release-labels.mjs'))).toBe(false)
   })
 })

@@ -7,7 +7,7 @@
  *
  * Back handling is a stack: the most recently pushed handler (an open modal, then the pause menu)
  * runs first, and returning `true` consumes the press. An unconsumed press minimises the app instead
- * of exiting it, so a stray back never throws away a run.
+ * of exiting it, so a stray back never discards unsaved progress.
  */
 
 export type LifecycleState = 'active' | 'background'

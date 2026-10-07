@@ -1,9 +1,9 @@
 /**
  * Orientation policy. A game declares the orientation it is designed around; the policy decides, per
  * device, which orientations are acceptable and whether to ask a phone player to rotate. Tablets and
- * unfolded foldables are usable either way, so they are never nagged (the hawthorne-house rule).
+ * unfolded foldables are usable either way, so they are never nagged.
  *
- * Fleet rule: never force-rotate. The decision drives a per-screen "turn the device" hint only; the
+ * Never force-rotate. The decision drives a per-screen "turn the device" hint only; the
  * native shell leaves the screen orientation unlocked.
  */
 import type { DeviceProfile, ViewOrientation } from './profile.js'
