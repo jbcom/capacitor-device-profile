@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/jbcom/capacitor-device-profile/compare/v0.1.2...v0.1.3) (2026-10-07)
+
+
+### Bug Fixes
+
+* support every maintained Node line (22, 24 and 26) ([661acb9](https://github.com/jbcom/capacitor-device-profile/commit/661acb929e91958327b0106910a22fa452002781))
+* support maintained Node lines and align house CI policy ([2656d44](https://github.com/jbcom/capacitor-device-profile/commit/2656d445ac3cb432a76d4854305207ea2851dcad))
+
 ## [0.1.2](https://github.com/jbcom/capacitor-device-profile/compare/v0.1.1...v0.1.2) (2026-10-07)
 
 
