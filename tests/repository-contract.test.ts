@@ -65,10 +65,7 @@ describe('repository contract', () => {
       (match) => match[1],
     )
     const gate = ci.slice(ci.indexOf('\n  gate:'))
-    const needs = gate
-      .match(/needs: \[([^\]]+)\]/)?.[1]
-      .split(',')
-      .map((job) => job.trim())
+    const needs = (gate.match(/needs: \[([^\]]+)\]/)?.[1] ?? '').split(',').map((job) => job.trim())
     expect(needs).toEqual(jobs.filter((job) => job !== 'gate'))
     expect(gate).toContain('name: CI / gate')
     expect(gate).toMatch(/^ {4}if: always\(\)$/m)
