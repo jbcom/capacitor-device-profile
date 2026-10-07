@@ -5,7 +5,7 @@
 // With MOBILE_CONSUMER_SOURCE=@arcade-cabinet/mobile@<version> it installs that published version
 // from the registry instead, with no credential in reach (the release workflow's last step).
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -31,16 +31,25 @@ try {
   }
 
   const consumer = path.join(scratch, 'consumer')
-  execFileSync('mkdir', ['-p', consumer])
+  mkdirSync(consumer, { recursive: true })
   writeFileSync(
     path.join(consumer, 'package.json'),
     JSON.stringify({ name: 'mobile-smoke-consumer', private: true, type: 'module' }),
   )
-  // An anonymous user config: the public registry plus the fleet scope, and nothing else.
+  // Anonymous: a user config with the public registry plus the fleet scope and nothing else, an
+  // empty global config, and no inherited npm_config_* or credential-looking variables (pnpm run
+  // exports npm_config_* into scripts), so no token on the machine can authenticate this install.
   const userConfig = path.join(scratch, 'anonymous.npmrc')
+  const globalConfig = path.join(scratch, 'empty-global.npmrc')
   writeFileSync(
     userConfig,
     `registry=https://registry.npmjs.org/\n@arcade-cabinet:registry=${REGISTRY}\n`,
+  )
+  writeFileSync(globalConfig, '')
+  const anonymousEnv = Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([key]) => !/^npm_config_/i.test(key) && !/auth|token|secret|password|credential/i.test(key),
+    ),
   )
   execFileSync(
     'npm',
@@ -51,10 +60,12 @@ try {
       '--ignore-scripts',
       '--userconfig',
       userConfig,
+      '--globalconfig',
+      globalConfig,
       source,
       'react@19',
     ],
-    { cwd: consumer, stdio: 'inherit' },
+    { cwd: consumer, stdio: 'inherit', env: anonymousEnv },
   )
 
   const esm = `
