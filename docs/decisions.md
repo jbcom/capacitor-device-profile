@@ -34,8 +34,9 @@ its oldest supported consumer lacks.
 ## First release is 0.1.0
 
 0.1.0 was never published from the game. The manifest starts at 0.0.0 with
-`bootstrap-sha` on the last imported commit, so release-please computes the first version
-from this repository's own `feat` commit: 0.1.0.
+`bootstrap-sha` on the last imported commit. release-please reads 0.0.0 as "never released"
+and falls back to its default initial version, 1.0.0 (it proposed exactly that), so the
+config sets `initial-version: 0.1.0`: a pre-1.0 package keeps a pre-1.0 first release.
 
 ## The description no longer advertises a `?probe=viewport` overlay
 
