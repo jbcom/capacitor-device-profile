@@ -22,12 +22,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Widest currently-supported Node range: both active LTS lines plus
-        # the current release. See https://nodejs.org/en/about/previous-releases
-        # for status; engines.node in package.json is the floor (>=24). The
+        # Maintained Node lines: maintenance LTS, active LTS and current.
+        # engines.node in package.json is the floor (>=22). The
         # package touches no paths or processes at runtime, so Linux alone
         # covers it.
         include:
+          - os: ubuntu-24.04
+            node: "22"
           - os: ubuntu-24.04
             node: "24"
           - os: ubuntu-24.04
@@ -96,20 +97,11 @@ jobs:
   gate:
     name: CI / gate
     needs: [verify, docs, sonarcloud, pre-commit]
-    if: >-
-      always() && (github.event_name != 'pull_request' ||
-      !(startsWith(github.event.pull_request.head.ref, 'release-please--') ||
-      (github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.pull_request.title, 'non-major'))))
+    if: always()
     runs-on: ubuntu-24.04
     steps:
       - name: Require every native validation job
         env:
-          VERIFY_RESULT: ${{ needs.verify.result }}
-          DOCS_RESULT: ${{ needs.docs.result }}
-          SONARCLOUD_RESULT: ${{ needs.sonarcloud.result }}
-          PRE_COMMIT_RESULT: ${{ needs.pre-commit.result }}
+          NEEDS: ${{ toJSON(needs) }}
         run: |
-          test "$VERIFY_RESULT" = success
-          test "$DOCS_RESULT" = success
-          test "$SONARCLOUD_RESULT" = success || test "$SONARCLOUD_RESULT" = skipped
-          test "$PRE_COMMIT_RESULT" = success
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success" or .result == "skipped")'

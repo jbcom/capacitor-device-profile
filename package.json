@@ -128,7 +128,7 @@
   },
   "homepage": "https://github.com/jbcom/capacitor-device-profile#readme",
   "engines": {
-    "node": ">=24"
+    "node": ">=22"
   },
   "keywords": [
     "capacitor",

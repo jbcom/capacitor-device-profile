@@ -15,7 +15,7 @@ pnpm verify   # lint, typecheck, test, build, package checks — the same gate C
 
 Without mise, use `corepack` so pnpm matches the version pinned in
 `package.json#packageManager`. The package is built on Node 26 (`.nvmrc`) and
-runs on any release in the `engines.node` range (`>=24`; CI verifies 24 and 26
+runs on maintained Node.js lines in the `engines.node` range (`>=22`; CI verifies 22, 24 and 26
 with the official `actions/setup-node` + `pnpm/action-setup`):
 
 ```sh

@@ -20,12 +20,28 @@ greater than anything already published, so no consumer resolving both registrie
 Built on Node 26 and pnpm 12 with TypeScript 7 (native). TypeScript 7 removed
 `moduleResolution: node10`, which the CommonJS build used. Every tsconfig now uses `bundler`; the CJS
 build keeps `module: CommonJS` and emits its own `.d.cts` declarations, so a CommonJS consumer
-resolves correct types (no "masquerading as ESM"). `engines.node` stays `>=24` with no ceiling and
+resolves correct types (no "masquerading as ESM"). `engines.node` is `>=22` with no ceiling and
 `@types/node` stays on 24: a library must not reach for an API its oldest supported consumer lacks.
-CI covers Node 24 and 26 on Linux; the package touches no paths or processes, so there is no Windows
+CI covers Node 22, 24 and 26 on Linux; the package touches no paths or processes, so there is no Windows
 job.
 
+## 2026-10-07: support every maintained Node.js line
+
+Node.js 22 (maintenance LTS), 24 (active LTS) and 26 (current) are supported. The minimum engine
+range is `>=22`; support follows maintained lines, not obsolete releases or every historical patch.
+Both shipped entry points use no Node API requiring a later floor. Local verification runs all
+`pnpm verify` steps, including coverage and packed-consumer smoke, on Node 22 and 26. CI tests all
+three lines with major-only selectors. Node 26 remains the local development default.
+
 ## Gates
+
+`CI / gate` always evaluates every CI job and accepts only success or skipped results. Matrix
+verification is a single dependency covering all three Node lines. Branch administration uses
+`scripts/apply-branch-ruleset.mjs`, the canonical three-ruleset script with defaults for this
+repository and `CI / gate;title;Repository Policy / gate;Dependency Review / gate`. It requires
+resolved review threads and normal merge commits, with no AI-billed Copilot or Code Quality rule.
+The script is an explicit administrative operation, never executed by tests or CI; its formatting
+is preserved from the canonical source while Biome continues to lint it.
 
 `pnpm verify` runs Biome, markdownlint, `tsc`, Vitest with coverage, the dual build, `publint`,
 `attw --pack`, a pack-content and ESM-versus-CommonJS equivalence check, and a packed-consumer smoke

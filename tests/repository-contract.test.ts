@@ -34,13 +34,19 @@ describe('repository contract', () => {
     ])
   })
 
-  it('builds on Node 26, pnpm 12 and TypeScript 7, and runs on Node 24 and later', () => {
+  it('builds on Node 26, pnpm 12 and TypeScript 7, and supports maintained Node 22, 24 and 26', () => {
     expect(read('.nvmrc').trim()).toBe('26')
     expect(read('mise.toml')).toMatch(/node = "26"[\s\S]*pnpm = "12"/)
     expect(manifest.packageManager).toMatch(/^pnpm@12\.\d+\.\d+$/)
     expect(manifest.devDependencies.typescript).toMatch(/^\^?7\./)
-    expect(manifest.engines).toEqual({ node: '>=24' })
+    expect(manifest.engines).toEqual({ node: '>=22' })
     expect(manifest.devDependencies['@types/node']).toMatch(/^\^?24\./)
+    const ci = read('.github/workflows/ci.yml')
+    expect([...ci.matchAll(/^\s+node: "([^"]+)"$/gm)].map((match) => match[1])).toEqual([
+      '22',
+      '24',
+      '26',
+    ])
   })
 
   it('resolves modules the TypeScript 7 way: no node10 anywhere', () => {
@@ -51,6 +57,37 @@ describe('repository contract', () => {
     for (const file of ['tsconfig.json', 'tsconfig.esm.json', 'tsconfig.cjs.json']) {
       expect(read(file), file).not.toMatch(/node10|"moduleResolution": "node"/)
     }
+  })
+
+  it('always gates every CI job and accepts only success or skipped results', () => {
+    const ci = read('.github/workflows/ci.yml')
+    const jobs = [...ci.slice(ci.indexOf('\njobs:')).matchAll(/^ {2}([\w-]+):$/gm)].map(
+      (match) => match[1],
+    )
+    const gate = ci.slice(ci.indexOf('\n  gate:'))
+    const needs = (gate.match(/needs: \[([^\]]+)\]/)?.[1] ?? '').split(',').map((job) => job.trim())
+    expect(needs).toEqual(jobs.filter((job) => job !== 'gate'))
+    expect(gate).toContain('name: CI / gate')
+    expect(gate).toMatch(/^ {4}if: always\(\)$/m)
+    expect(gate).toContain(`NEEDS: \${{ toJSON(needs) }}`)
+    expect(gate).toContain('jq -e \'all(.[]; .result == "success" or .result == "skipped")\'')
+  })
+
+  it('defaults the canonical ruleset script to this repository and aggregate checks', () => {
+    // Inspect only: running this administrative script would mutate GitHub rulesets.
+    const script = read('scripts/apply-branch-ruleset.mjs')
+    expect(script).toContain("repo = 'capacitor-device-profile'")
+    expect(script).toContain(
+      "checksArg = 'CI / gate;title;Repository Policy / gate;Dependency Review / gate'",
+    )
+    for (const name of ['main-integrity', 'conventional-commits', 'release-tag-integrity']) {
+      expect(script).toContain(`name: '${name}'`)
+    }
+    expect(script).toContain('No Copilot review or Code Quality rule: both spend AI credits')
+    expect(script).toContain('includes_parents=false')
+    expect(script).toContain('required_review_thread_resolution: true')
+    expect(script).toContain("allowed_merge_methods: ['merge']")
+    expect(script).not.toMatch(/type: '(?:copilot|code_quality)/)
   })
 
   it('verifies everything, including the packed package and a packed consumer', () => {
