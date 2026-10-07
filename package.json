@@ -1,23 +1,13 @@
 {
-  "name": "@arcade-cabinet/mobile",
-  "version": "0.1.0",
-  "description": "Mobile and foldable runtime for arcade-cabinet games: device profile (phone, foldable-open, tablet, desktop), orientation policy, live safe-area insets, app lifecycle with a back-button stack, and a haptics facade. Extracted from curse-of-the-mummy, grave-shift, hawthorne-house and infinite-headaches.",
+  "name": "capacitor-device-profile",
+  "version": "0.1.1",
+  "description": "Mobile and foldable runtime over Capacitor: device profile (phone, foldable-open, tablet, desktop) that re-classifies live on fold and unfold, orientation policy, live safe-area insets, app lifecycle with a back-button stack, and a haptics facade.",
   "type": "module",
-  "license": "UNLICENSED",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/jbcom/mobile.git"
-  },
-  "bugs": {
-    "url": "https://github.com/jbcom/mobile/issues"
-  },
-  "engines": {
-    "node": ">=24"
-  },
-  "packageManager": "pnpm@12.9.1",
+  "license": "MIT",
+  "author": "Jon Bogaty <jon@jonbogaty.com>",
   "publishConfig": {
-    "access": "restricted",
-    "registry": "https://registry.npmjs.org/"
+    "access": "public",
+    "provenance": true
   },
   "sideEffects": false,
   "main": "./dist/cjs/index.cjs",
@@ -25,31 +15,63 @@
   "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.cjs"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
     },
     "./react": {
-      "types": "./dist/esm/react.d.ts",
-      "import": "./dist/esm/react.js",
-      "require": "./dist/cjs/react.cjs"
+      "import": {
+        "types": "./dist/esm/react.d.ts",
+        "default": "./dist/esm/react.js"
+      },
+      "require": {
+        "types": "./dist/cjs/react.d.cts",
+        "default": "./dist/cjs/react.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./dist/esm/react.d.ts"
+      ],
+      "*": [
+        "./dist/esm/index.d.ts"
+      ]
+    }
+  },
   "files": [
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
     "dist",
-    "README.md",
-    "CHANGELOG.md"
+    "docs/API.md",
+    "docs/ARCHITECTURE.md"
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "prepack": "node scripts/build.mjs",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "lint:docs": "markdownlint-cli2 README.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md CHANGELOG.md AGENTS.md \"docs/**/*.md\" \"!docs/node_modules/**\" \"!docs/dist/**\" .github/PULL_REQUEST_TEMPLATE.md",
+    "package:check": "publint && attw --pack . && node scripts/verify-package.mjs",
     "smoke:consumer": "node scripts/consumer-smoke.mjs",
-    "verify": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build && pnpm run smoke:consumer"
+    "verify": "pnpm run lint && pnpm run lint:docs && pnpm run typecheck && pnpm run coverage && pnpm run build && pnpm run package:check && pnpm run smoke:consumer",
+    "docs:dev": "pnpm --filter capacitor-device-profile-docs dev",
+    "docs:build": "pnpm --filter capacitor-device-profile-docs build",
+    "docs:check": "pnpm --filter capacitor-device-profile-docs check",
+    "prepare": "simple-git-hooks"
   },
   "peerDependencies": {
     "react": "^18 || ^19"
@@ -60,18 +82,63 @@
     }
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "2.5.15",
     "@capacitor/app": "^8.1.2",
-    "@capacitor/core": "^8.5.2",
+    "@capacitor/core": "^8.5.3",
     "@capacitor/device": "^8.0.3",
     "@capacitor/haptics": "^8.0.2",
-    "@testing-library/react": "^16.3.2",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.3.0",
-    "jsdom": "^30.0.1",
+    "@types/react-dom": "^19.3.0",
+    "@vitest/coverage-v8": "^5.0.3",
+    "jsdom": "^30.1.2",
+    "lint-staged": "^17.6.0",
+    "markdownlint-cli2": "^0.23.3",
+    "publint": "^0.3.25",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "typescript": "~5.9.3",
+    "simple-git-hooks": "^2.14.0",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.3"
-  }
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged",
+    "commit-msg": "pnpm exec commitlint --edit $1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs,json}": [
+      "biome check --write --no-errors-on-unmatched"
+    ],
+    "*.md": [
+      "markdownlint-cli2"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jbcom/capacitor-device-profile.git"
+  },
+  "packageManager": "pnpm@12.10.1",
+  "bugs": {
+    "url": "https://github.com/jbcom/capacitor-device-profile/issues"
+  },
+  "homepage": "https://github.com/jbcom/capacitor-device-profile#readme",
+  "engines": {
+    "node": ">=24"
+  },
+  "keywords": [
+    "capacitor",
+    "device-profile",
+    "form-factor",
+    "foldable",
+    "safe-area",
+    "haptics",
+    "app-lifecycle",
+    "orientation",
+    "react",
+    "game-dev"
+  ]
 }
