@@ -59,6 +59,40 @@ describe('repository contract', () => {
     }
   })
 
+  it('always gates every CI job and accepts only success or skipped results', () => {
+    const ci = read('.github/workflows/ci.yml')
+    const jobs = [...ci.slice(ci.indexOf('\njobs:')).matchAll(/^ {2}([\w-]+):$/gm)].map(
+      (match) => match[1],
+    )
+    const gate = ci.slice(ci.indexOf('\n  gate:'))
+    const needs = gate
+      .match(/needs: \[([^\]]+)\]/)?.[1]
+      .split(',')
+      .map((job) => job.trim())
+    expect(needs).toEqual(jobs.filter((job) => job !== 'gate'))
+    expect(gate).toContain('name: CI / gate')
+    expect(gate).toMatch(/^ {4}if: always\(\)$/m)
+    expect(gate).toContain(`NEEDS: \${{ toJSON(needs) }}`)
+    expect(gate).toContain('jq -e \'all(.[]; .result == "success" or .result == "skipped")\'')
+  })
+
+  it('defaults the canonical ruleset script to this repository and aggregate checks', () => {
+    // Inspect only: running this administrative script would mutate GitHub rulesets.
+    const script = read('scripts/apply-branch-ruleset.mjs')
+    expect(script).toContain("repo = 'capacitor-device-profile'")
+    expect(script).toContain(
+      "checksArg = 'CI / gate;title;Repository Policy / gate;Dependency Review / gate'",
+    )
+    for (const name of ['main-integrity', 'conventional-commits', 'release-tag-integrity']) {
+      expect(script).toContain(`name: '${name}'`)
+    }
+    expect(script).toContain('No Copilot review or Code Quality rule: both spend AI credits')
+    expect(script).toContain('includes_parents=false')
+    expect(script).toContain('required_review_thread_resolution: true')
+    expect(script).toContain("allowed_merge_methods: ['merge']")
+    expect(script).not.toMatch(/type: '(?:copilot|code_quality)/)
+  })
+
   it('verifies everything, including the packed package and a packed consumer', () => {
     const verify = manifest.scripts.verify ?? ''
     for (const step of [

@@ -35,6 +35,14 @@ three lines with major-only selectors. Node 26 remains the local development def
 
 ## Gates
 
+`CI / gate` always evaluates every CI job and accepts only success or skipped results. Matrix
+verification is a single dependency covering all three Node lines. Branch administration uses
+`scripts/apply-branch-ruleset.mjs`, the canonical three-ruleset script with defaults for this
+repository and `CI / gate;title;Repository Policy / gate;Dependency Review / gate`. It requires
+resolved review threads and normal merge commits, with no AI-billed Copilot or Code Quality rule.
+The script is an explicit administrative operation, never executed by tests or CI; its formatting
+is preserved from the canonical source while Biome continues to lint it.
+
 `pnpm verify` runs Biome, markdownlint, `tsc`, Vitest with coverage, the dual build, `publint`,
 `attw --pack`, a pack-content and ESM-versus-CommonJS equivalence check, and a packed-consumer smoke
 that installs the tarball into an empty project against npmjs only. The first release is published
