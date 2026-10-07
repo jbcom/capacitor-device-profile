@@ -18,14 +18,15 @@ Full documentation: **[jonbogaty.com/capacitor-device-profile](https://jonbogaty
 pnpm add capacitor-device-profile
 ```
 
-Requirements:
+## Compatibility
 
-- Node.js 24 or newer for tooling (CI covers Node 24 and 26 on Linux)
+- Node.js 22, 24 and 26 for tooling (`engines.node: >=22`; CI tests each maintained line)
 - React 18 or 19 only if you use the optional `capacitor-device-profile/react` bindings
 - The Capacitor plugins you want to drive (`@capacitor/app`, `@capacitor/haptics`,
   `@capacitor/device`) are installed by the application and passed in
 
 The package ships native ESM and CommonJS entry points with format-correct TypeScript declarations.
+Support follows maintained Node.js lines, rather than every historical patch or end-of-life release.
 
 ## Quick start
 

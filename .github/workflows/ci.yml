@@ -22,12 +22,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Widest currently-supported Node range: both active LTS lines plus
-        # the current release. See https://nodejs.org/en/about/previous-releases
-        # for status; engines.node in package.json is the floor (>=24). The
+        # Maintained Node lines: maintenance LTS, active LTS and current.
+        # engines.node in package.json is the floor (>=22). The
         # package touches no paths or processes at runtime, so Linux alone
         # covers it.
         include:
+          - os: ubuntu-24.04
+            node: "22"
           - os: ubuntu-24.04
             node: "24"
           - os: ubuntu-24.04

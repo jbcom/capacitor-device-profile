@@ -10,7 +10,7 @@ pnpm add capacitor-device-profile
 pnpm add @capacitor/app @capacitor/device @capacitor/haptics @capacitor/core
 ```
 
-Use Node.js 24 or newer for tooling. React 18 or 19 is an optional peer dependency, needed only for
+Use maintained Node.js 22, 24 or 26 for tooling. React 18 or 19 is an optional peer dependency, needed only for
 `capacitor-device-profile/react`. The package ships native ESM and CommonJS entry points with
 format-correct TypeScript declarations.
 
