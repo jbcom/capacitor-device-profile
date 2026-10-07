@@ -1,20 +1,20 @@
 {
   "name": "@arcade-cabinet/mobile",
-  "version": "0.1.0",
-  "description": "Mobile and foldable runtime for arcade-cabinet games: device profile (phone, foldable-open, tablet, desktop), orientation policy, live safe-area insets, app lifecycle with a back-button stack, a haptics facade, and a ?probe=viewport overlay. Extracted from curse-of-the-mummy, grave-shift, hawthorne-house and infinite-headaches.",
+  "version": "0.0.0",
+  "description": "Mobile and foldable runtime for arcade-cabinet games: device profile (phone, foldable-open, tablet, desktop), orientation policy, live safe-area insets, app lifecycle with a back-button stack, and a haptics facade. Extracted from curse-of-the-mummy, grave-shift, hawthorne-house and infinite-headaches.",
   "type": "module",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jbcom/curse-of-the-mummy.git",
-    "directory": "packages/mobile"
+    "url": "https://github.com/jbcom/mobile.git"
   },
   "bugs": {
-    "url": "https://github.com/jbcom/curse-of-the-mummy/issues"
+    "url": "https://github.com/jbcom/mobile/issues"
   },
   "engines": {
     "node": ">=24"
   },
+  "packageManager": "pnpm@12.9.1",
   "publishConfig": {
     "access": "restricted",
     "registry": "https://registry.npmjs.org/"
@@ -43,10 +43,13 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
+    "prepack": "node scripts/build.mjs",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "smoke:consumer": "node scripts/consumer-smoke.mjs",
-    "verify": "pnpm run typecheck && pnpm run test && pnpm run build && pnpm run smoke:consumer"
+    "verify": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build && pnpm run smoke:consumer"
   },
   "peerDependencies": {
     "react": "^18 || ^19"
@@ -57,6 +60,7 @@
     }
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.2",
     "@capacitor/device": "^8.0.3",

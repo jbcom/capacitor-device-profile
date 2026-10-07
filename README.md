@@ -8,8 +8,20 @@ Capacitor version, and every module unit-tests without a device.
 Provenance: the device profile comes from grave-shift (`src/platform/deviceProfile.ts`), the
 orientation rule from hawthorne-house (`src/stage/orientation.ts`), and the lifecycle from
 infinite-headaches (`src/platform/app-lifecycle.ts`). The `foldable-open` class and its thresholds
-were measured on a OnePlus Open for curse-of-the-mummy, which incubates the package in
-`packages/mobile`.
+were measured on a OnePlus Open for curse-of-the-mummy, where the package first lived in
+`packages/mobile` before moving here with its history (see `docs/decisions.md`).
+
+## Install
+
+```sh
+pnpm add @arcade-cabinet/mobile
+```
+
+Served by the `arcade-cabinet` Gitea registry on a private network, read anonymously:
+
+```ini
+@arcade-cabinet:registry=https://registry.npmjs.org/
+```
 
 ## API
 
@@ -40,7 +52,19 @@ const profile = useDeviceProfile({ loadPlatform: () => Device.getInfo() })
 
 ## Develop and release
 
-`pnpm --filter @arcade-cabinet/mobile verify` runs typecheck, tests (jsdom), the dual ESM/CJS build
-and a built-tarball consumer smoke. Publishing runs in the `mobile-package` job of the host repository's `release.yml`
-against the immutable `mobile-v<version>` tag release-please creates, then verifies the
-exact version anonymously from the registry.
+Built on the fleet toolchain, Node 26 (`.node-version`) and pnpm 12 (`packageManager`, through
+Corepack); the package itself runs on Node 24 and later.
+
+```sh
+corepack enable
+pnpm install --frozen-lockfile
+pnpm verify   # Biome, tsc, Vitest (jsdom), the dual ESM/CJS build, a packed-tarball consumer smoke
+```
+
+Conventional Commits drive release-please; merging its release pull request tags `v<version>`.
+The publish job in `.gitea/workflows/release.yml` reconciles on every `main` run: when the manifest
+version is tagged but absent from the registry, it verifies at the tag, packs twice and requires byte
+identity, publishes those bytes with the organisation secret `NPM_TOKEN` from a
+throwaway npmrc, then reruns the consumer smoke against the published version with
+`MOBILE_CONSUMER_SOURCE=@arcade-cabinet/mobile@<version>` and an anonymous npm config. Never edit
+the `version` field by hand.
