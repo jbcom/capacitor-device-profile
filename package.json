@@ -1,6 +1,6 @@
 {
   "name": "@arcade-cabinet/mobile",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Mobile and foldable runtime for arcade-cabinet games: device profile (phone, foldable-open, tablet, desktop), orientation policy, live safe-area insets, app lifecycle with a back-button stack, and a haptics facade. Extracted from curse-of-the-mummy, grave-shift, hawthorne-house and infinite-headaches.",
   "type": "module",
   "license": "UNLICENSED",
