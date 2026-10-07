@@ -37,9 +37,14 @@ describe('repository contract', () => {
   it('publishes byte-identical packs with the package-only secret and proves them anonymously', () => {
     const release = read('.gitea/workflows/release.yml')
     expect(release).toContain('PACKAGE: "@arcade-cabinet/mobile"')
-    // Without these labels release-please cannot find a merged release PR, so it never tags.
-    expect(release).toContain("name: 'autorelease: pending'")
-    expect(release).toContain("name: 'autorelease: tagged'")
+    // Without these labels release-please cannot find a merged release PR, so it never tags: the
+    // bootstrap must run, and run first.
+    expect(release).toMatch(
+      /run: node scripts\/ensure-release-labels\.mjs[\s\S]+?joaquinjsb\/gitea-release-please-action/,
+    )
+    const labels = read('scripts/ensure-release-labels.mjs')
+    expect(labels).toContain("name: 'autorelease: pending'")
+    expect(labels).toContain("name: 'autorelease: tagged'")
     expect(release).toMatch(/git checkout --detach "refs\/tags\/[^"]+"[\s\S]+?pnpm verify/)
     expect(release).toMatch(/cmp "\$\{RUNNER_TEMP\}"\/a\/\*\.tgz "\$\{RUNNER_TEMP\}"\/b\/\*\.tgz/)
     expect(release).toContain('secrets.NPM_TOKEN')
