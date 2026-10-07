@@ -1,13 +1,18 @@
 # Changelog
 
-## 0.1.0 (2026-10-07)
+## 0.1.1 (2026-10-07)
 
+First release on npmjs, as `capacitor-device-profile`, MIT licensed, from `github.com/jbcom/capacitor-device-profile`.
 
 ### Features
 
-* build, test and release @arcade-cabinet/mobile from its own repository ([f0951b9](https://github.com/jbcom/mobile/commit/f0951b96d0c1ad9465f192a680ec7e2431e177a1))
-
+* build, test and release the package from its own repository
+* dual ESM and CommonJS builds with format-correct declarations
 
 ### Bug Fixes
 
-* make the consumer smoke's anonymous install provably anonymous ([c480e70](https://github.com/jbcom/mobile/commit/c480e70f61fcf96c9cdef610f742b43422c2fdcd))
+* make the consumer smoke's install provably anonymous
+
+### Build
+
+* TypeScript 7, `moduleResolution: bundler`, Node 26 and pnpm 12

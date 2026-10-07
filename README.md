@@ -1,26 +1,55 @@
-# @arcade-cabinet/mobile
+# capacitor-device-profile
 
-Thin fleet glue between a game and the Capacitor plugins it runs on: one device classification, one
-orientation rule, live safe-area insets, an app lifecycle with a back-button stack, and a haptics
-facade. It has no runtime dependencies. Capacitor plugins are passed in, so the package carries no
-Capacitor version, and every module unit-tests without a device.
+[![CI](https://github.com/jbcom/capacitor-device-profile/actions/workflows/ci.yml/badge.svg)](https://github.com/jbcom/capacitor-device-profile/actions/workflows/ci.yml)
+[![MIT license](https://img.shields.io/badge/license-MIT-17324d.svg)](./LICENSE)
 
-Provenance: the device profile comes from grave-shift (`src/platform/deviceProfile.ts`), the
-orientation rule from hawthorne-house (`src/stage/orientation.ts`), and the lifecycle from
-infinite-headaches (`src/platform/app-lifecycle.ts`). The `foldable-open` class and its thresholds
-were measured on a OnePlus Open for curse-of-the-mummy, where the package first lived in
-`packages/mobile` before moving here with its history (see `docs/decisions.md`).
+A small mobile and foldable runtime for web apps and games that ship in a Capacitor shell: one device
+classification that re-classifies live when a foldable folds or unfolds, one orientation rule, live
+safe-area insets, an app lifecycle with a back-button stack, and a haptics facade.
+
+It has no runtime dependencies. Capacitor plugins are passed in, so the package carries no Capacitor
+version, and every module unit-tests without a device.
+
+Full documentation: **[jonbogaty.com/capacitor-device-profile](https://jonbogaty.com/capacitor-device-profile/)**
 
 ## Install
 
 ```sh
-pnpm add @arcade-cabinet/mobile
+pnpm add capacitor-device-profile
 ```
 
-Served by the `arcade-cabinet` Gitea registry on a private network, read anonymously:
+Requirements:
 
-```ini
-@arcade-cabinet:registry=https://registry.npmjs.org/
+- Node.js 24 or newer for tooling (CI covers Node 24 and 26 on Linux)
+- React 18 or 19 only if you use the optional `capacitor-device-profile/react` bindings
+- The Capacitor plugins you want to drive (`@capacitor/app`, `@capacitor/haptics`,
+  `@capacitor/device`) are installed by the application and passed in
+
+The package ships native ESM and CommonJS entry points with format-correct TypeScript declarations.
+
+## Quick start
+
+```ts
+import { App } from '@capacitor/app'
+import { Capacitor } from '@capacitor/core'
+import { Device } from '@capacitor/device'
+import { Haptics } from '@capacitor/haptics'
+import { createAppLifecycle, createHaptics, decideOrientation } from 'capacitor-device-profile'
+import { useDeviceProfile, useSafeAreaInsets } from 'capacitor-device-profile/react'
+
+const native = Capacitor.isNativePlatform()
+const lifecycle = createAppLifecycle({ app: App, native, onPause: pauseTimers })
+const haptics = createHaptics({ plugin: Haptics, native })
+
+// An open modal closes first on the Android back button; an unhandled press minimises the app.
+const closeModal = lifecycle.pushBackHandler(() => dialog.close())
+
+function Screen() {
+  const profile = useDeviceProfile({ loadPlatform: () => Device.getInfo() })
+  const insets = useSafeAreaInsets()
+  const { promptRotate, target } = decideOrientation(profile, 'landscape')
+  return promptRotate ? <RotateHint to={target} /> : <Layout form={profile.formFactor} inset={insets} />
+}
 ```
 
 ## API
@@ -34,37 +63,22 @@ Served by the `arcade-cabinet` Gitea registry on a private network, read anonymo
 | `watchSafeArea(options)` / `readSafeAreaInsets()` | Measures `env(safe-area-inset-*)` through a probe and publishes `--safe-top/right/bottom/left` px variables, re-measured on resize, orientation change, visual-viewport resize and fold posture change |
 | `createAppLifecycle({ app, native, onPause, onResume })` | Pause/resume from Capacitor `App` (native) or page visibility (web); `pushBackHandler` stack; an unconsumed back press minimises instead of exiting |
 | `createHaptics({ plugin, native })` | `impact`, `notify`, `selection`; no-ops on the web and while disabled; plugin failures never throw |
-| `@arcade-cabinet/mobile/react`: `useDeviceProfile`, `useSafeAreaInsets`, `subscribeViewportGeometry` | Live bindings: a fold or unfold re-classifies without a reload |
+| `capacitor-device-profile/react`: `useDeviceProfile`, `useSafeAreaInsets`, `subscribeViewportGeometry` | Live bindings: a fold or unfold re-classifies without a reload |
 
-```ts
-import { App } from '@capacitor/app'
-import { Capacitor } from '@capacitor/core'
-import { Device } from '@capacitor/device'
-import { Haptics } from '@capacitor/haptics'
-import { createAppLifecycle, createHaptics } from '@arcade-cabinet/mobile'
-import { useDeviceProfile } from '@arcade-cabinet/mobile/react'
+The [API reference](./docs/API.md) has every signature and the exact classification rules.
 
-const native = Capacitor.isNativePlatform()
-const lifecycle = createAppLifecycle({ app: App, native, onPause: pauseGame })
-const haptics = createHaptics({ plugin: Haptics, native })
-const profile = useDeviceProfile({ loadPlatform: () => Device.getInfo() })
-```
-
-## Develop and release
-
-Built on the fleet toolchain, Node 26 (`.node-version`) and pnpm 12 (`packageManager`, through
-Corepack); the package itself runs on Node 24 and later.
+## Develop
 
 ```sh
 corepack enable
 pnpm install --frozen-lockfile
-pnpm verify   # Biome, tsc, Vitest (jsdom), the dual ESM/CJS build, a packed-tarball consumer smoke
+pnpm verify   # Biome, markdownlint, tsc, Vitest with coverage, the dual ESM/CJS build, publint, attw, a packed-consumer smoke
 ```
 
-Conventional Commits drive release-please; merging its release pull request tags `v<version>`.
-The publish job in `.gitea/workflows/release.yml` reconciles on every `main` run: when the manifest
-version is tagged but absent from the registry, it verifies at the tag, packs twice and requires byte
-identity, publishes those bytes with the organisation secret `NPM_TOKEN` from a
-throwaway npmrc, then reruns the consumer smoke against the published version with
-`MOBILE_CONSUMER_SOURCE=@arcade-cabinet/mobile@<version>` and an anonymous npm config. Never edit
-the `version` field by hand.
+Built on Node 26 (`.nvmrc`), pnpm 12 and TypeScript 7. Conventional Commits drive release-please;
+merging its release pull request tags `v<version>` and the `cd.yml` publish job releases to npm with
+provenance. See [CONTRIBUTING.md](./CONTRIBUTING.md) and [AGENTS.md](./AGENTS.md).
+
+## License
+
+[MIT](./LICENSE)

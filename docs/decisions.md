@@ -1,44 +1,38 @@
 # Decisions
 
-## 2026-10-07: moved out of curse-of-the-mummy into its own repository
+## 2026-10-07: open source under the owner's npm user, as `capacitor-device-profile`
 
-**Decision.** `@arcade-cabinet/mobile` left `curse-of-the-mummy/packages/mobile` for
-`arcade-cabinet/mobile`, with its history (`git filter-repo --subdirectory-filter`).
-curse-of-the-mummy now installs it from the registry like any other consumer.
+**Decision.** The package is published to npmjs as `capacitor-device-profile`, from
+`github.com/jbcom/capacitor-device-profile`, MIT licensed. The first npmjs version is 0.1.1.
 
-**Why.** The owner: "You shouldn't need other games as dependencies for shared packages",
-and "that should be moved OUT of the game repo and into the arcade-cabinet like yuka-kit
-and others". Inside the game it could only be released through the game's lockfile and
-its two-component release-please, and it had never been published.
+**Why the name.** Packages publish unscoped, and the bare `mobile` is taken on npmjs by an unrelated
+package, so a descriptive name was needed. `capacitor-device-profile` is free and names the package's
+center: a device profile (phone, foldable-open, tablet, desktop, re-classified live on fold and
+unfold) over Capacitor. Safe-area measurement, the orientation rule, lifecycle and haptics are the
+supporting pieces a layout needs next to that profile. `capacitor-` also puts it next to the
+Capacitor plugins in search. The API did not suggest a better free name.
 
-## The repository shape is the fleet package shape
+**Why 0.1.1.** An earlier 0.1.0 was published to a private registry. The first public version must be
+greater than anything already published, so no consumer resolving both registries can collide.
 
-Same as `arcade-cabinet/persistence-save` and `lifecycle-kit`: `ci.yml` runs `pnpm verify`
-on every push and pull request; `release.yml` runs release-please and a publish job that
-reconciles the manifest version against tags and the registry, packs twice for byte
-identity and proves the published version anonymously. That reconcile job is the one this
-package already had in curse-of-the-mummy (`mobile-package`), now owned here. Tags are
-plain `v<version>`; the `mobile-v` component prefix only existed to share a tag namespace
-with the game.
+## Toolchain: Node 26, pnpm 12, TypeScript 7
 
-Biome uses the style the source was written in (single quotes, no semicolons, trailing
-commas), so the move did not reformat it. `prepack` builds, so a bare `npm pack` can never
-ship a stale or missing `dist`.
+Built on Node 26 and pnpm 12 with TypeScript 7 (native). TypeScript 7 removed
+`moduleResolution: node10`, which the CommonJS build used. Every tsconfig now uses `bundler`; the CJS
+build keeps `module: CommonJS` and emits its own `.d.cts` declarations, so a CommonJS consumer
+resolves correct types (no "masquerading as ESM"). `engines.node` stays `>=24` with no ceiling and
+`@types/node` stays on 24: a library must not reach for an API its oldest supported consumer lacks.
+CI covers Node 24 and 26 on Linux; the package touches no paths or processes, so there is no Windows
+job.
 
-## Toolchain: Node 26 and pnpm 12 to build, Node 24 as the floor to run
+## Gates
 
-Built where the fleet is moving (curse-of-the-mummy's toolchain lane). `engines` stays
-`>=24` with no ceiling and `@types/node` stays on 24: a library must not reach for an API
-its oldest supported consumer lacks.
+`pnpm verify` runs Biome, markdownlint, `tsc`, Vitest with coverage, the dual build, `publint`,
+`attw --pack`, a pack-content and ESM-versus-CommonJS equivalence check, and a packed-consumer smoke
+that installs the tarball into an empty project against npmjs only. The first release is published
+locally once with a token passed only through `--userconfig`; every later release publishes from
+`cd.yml` by OIDC trusted publishing.
 
-## First release is 0.1.0
+## The description does not advertise a `?probe=viewport` overlay
 
-0.1.0 was never published from the game. The manifest starts at 0.0.0 with
-`bootstrap-sha` on the last imported commit. release-please reads 0.0.0 as "never released"
-and falls back to its default initial version, 1.0.0 (it proposed exactly that), so the
-config sets `initial-version: 0.1.0`: a pre-1.0 package keeps a pre-1.0 first release.
-
-## The description no longer advertises a `?probe=viewport` overlay
-
-The package never shipped one; `safeArea.ts`'s probe is a hidden measuring element.
-curse-of-the-mummy's `/probe` route is the game's own.
+The package never shipped one; `safeArea.ts` measures through a hidden probe element.

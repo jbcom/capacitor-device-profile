@@ -1,0 +1,15 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "capacitor-device-profile",
+  "description": "Mobile and foldable runtime over Capacitor: device profile with live fold and unfold re-classification, orientation policy, safe-area insets, app lifecycle with a back-button stack, and a haptics facade.",
+  "branch": "main",
+  "folders": ["docs", "src"],
+  "excludeFolders": ["node_modules", "dist", "coverage", "docs/dist", "docs/node_modules"],
+  "excludeFiles": ["CHANGELOG.md"],
+  "rules": [
+    "Pass Capacitor plugins in; the package never imports Capacitor.",
+    "Never force-rotate: decideOrientation only produces a hint.",
+    "Classify devices from injected ViewportFacts so thresholds unit-test without a browser.",
+    "Every subscription returns a disposer; call it on teardown."
+  ]
+}

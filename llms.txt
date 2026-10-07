@@ -1,0 +1,15 @@
+# capacitor-device-profile
+
+> A small mobile and foldable runtime for web apps and games in a Capacitor shell: a device profile
+> (phone, foldable-open, tablet, desktop) that re-classifies live on fold and unfold, an orientation
+> rule that never force-rotates, live safe-area insets, an app lifecycle with a back-button stack,
+> and a haptics facade. No runtime dependencies; Capacitor plugins are passed in.
+
+## Docs
+
+- [Documentation site](https://jonbogaty.com/capacitor-device-profile/): the published, browsable version of everything below.
+- [README](https://github.com/jbcom/capacitor-device-profile/blob/main/README.md): install, quick start, API overview.
+- [API reference](https://github.com/jbcom/capacitor-device-profile/blob/main/docs/API.md): every export, with the exact classification rules.
+- [Architecture](https://github.com/jbcom/capacitor-device-profile/blob/main/docs/ARCHITECTURE.md): module boundaries, invariants, intentional limits.
+- [AGENTS.md](https://github.com/jbcom/capacitor-device-profile/blob/main/AGENTS.md): toolchain, invariants not to violate, doc/test sync obligations.
+- [CONTRIBUTING.md](https://github.com/jbcom/capacitor-device-profile/blob/main/CONTRIBUTING.md): local setup, the `pnpm verify` gate, commit and release conventions.
