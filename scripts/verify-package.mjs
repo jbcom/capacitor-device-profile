@@ -4,7 +4,7 @@
 // Registry-only install proof lives in consumer-smoke.mjs; this gate inspects the pack itself.
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -65,11 +65,22 @@ try {
   ]) {
     assert(packedPaths.has(required), `packed artifact is missing ${required}`)
   }
-  for (const forbiddenPrefix of ['src/', 'tests/', 'coverage/', 'scripts/', '.github/']) {
+  for (const forbiddenPrefix of ['tests/', 'coverage/', 'scripts/', '.github/']) {
     assert(
       [...packedPaths].every((file) => !file.startsWith(forbiddenPrefix)),
       `packed artifact unexpectedly contains ${forbiddenPrefix}`,
     )
+  }
+  // Declaration maps send an editor's go-to-definition to the TypeScript source, so every source a
+  // packed map names must ship too; a map pointing outside the pack is a dead link for consumers.
+  const maps = [...packedPaths].filter((file) => file.endsWith('.map'))
+  assert(maps.length > 0, 'packed artifact has no declaration maps')
+  for (const map of maps) {
+    const { sources } = JSON.parse(readFileSync(path.join(packageRoot, map), 'utf8'))
+    for (const source of sources) {
+      const resolved = path.posix.join(path.posix.dirname(map), source)
+      assert(packedPaths.has(resolved), `${map} points at ${resolved}, which is not packed`)
+    }
   }
 
   const require = createRequire(import.meta.url)
