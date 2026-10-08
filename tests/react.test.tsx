@@ -34,7 +34,7 @@ describe('useDeviceProfile', () => {
 
   it('refines the platform from an async lookup', async () => {
     setViewport(1024, 1366)
-    const loadPlatform = vi.fn(async () => ({ platform: 'ios', model: 'iPad13,8' }))
+    const loadPlatform = vi.fn(async () => ({ platform: 'ios' as const, model: 'iPad13,8' }))
     const { result } = renderHook(() => useDeviceProfile({ loadPlatform }))
     await waitFor(() => expect(result.current.platform).toBe('ios'))
     expect(result.current.native).toBe(true)
