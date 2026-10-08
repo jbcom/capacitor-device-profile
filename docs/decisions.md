@@ -49,6 +49,15 @@ that installs the tarball into an empty project against npmjs only. The first re
 locally once with a token passed only through `--userconfig`; every later release publishes from
 `cd.yml` by OIDC trusted publishing.
 
+## 2026-10-08: recover publication after release verification
+
+Release v0.1.3 was tagged from the House conformance work, but its CD verification
+failed before publication because the React test fixture left asynchronous work alive
+after jsdom teardown. PR #8 fixed that fixture cleanup on `main`; the failed tag and
+CD run remain as evidence and are not moved, deleted, or retried. This recovery asks
+Release Please for v0.1.4 from the repaired `main` source so the existing OIDC CD
+workflow verifies and publishes a distinct, correctly tagged artifact.
+
 ## The description does not advertise a `?probe=viewport` overlay
 
 The package never shipped one; `safeArea.ts` measures through a hidden probe element.
