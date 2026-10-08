@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/jbcom/capacitor-device-profile/compare/v0.1.3...v0.1.4) (2026-10-08)
+
+
+### Bug Fixes
+
+* **release:** recover publication after fixture repair ([cd88516](https://github.com/jbcom/capacitor-device-profile/commit/cd88516a128d265c593af1c623d6e2051cde1190))
+* **release:** recover publication after fixture repair ([ae82c04](https://github.com/jbcom/capacitor-device-profile/commit/ae82c04c4792f1fac617f86d4233dad26e7f1ff9))
+
 ## [0.1.3](https://github.com/jbcom/capacitor-device-profile/compare/v0.1.2...v0.1.3) (2026-10-07)
 
 
