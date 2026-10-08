@@ -3,7 +3,9 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    # Required matrix checks must exist on release PRs too. A workflow_dispatch run does not
+    # satisfy PR rulesets; push runs perform full validation when PR jobs intentionally skip.
+    branches: [main, "release-please--**"]
   workflow_dispatch:
 
 permissions:
