@@ -1,6 +1,6 @@
 {
   "name": "capacitor-device-profile",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Mobile and foldable runtime over Capacitor: device profile (phone, foldable-open, tablet, desktop) that re-classifies live on fold and unfold, orientation policy, live safe-area insets, app lifecycle with a back-button stack, and a haptics facade.",
   "type": "module",
   "license": "MIT",
