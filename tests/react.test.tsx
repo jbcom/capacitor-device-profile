@@ -1,5 +1,5 @@
-import { act, renderHook, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useDeviceProfile, useSafeAreaInsets } from '../src/react.js'
 
 function setViewport(width: number, height: number) {
@@ -8,7 +8,10 @@ function setViewport(width: number, height: number) {
   Object.defineProperty(window.navigator, 'maxTouchPoints', { configurable: true, value: 5 })
 }
 
-afterEach(() => setViewport(1024, 768))
+afterEach(() => {
+  cleanup()
+  setViewport(1024, 768)
+})
 
 describe('useDeviceProfile', () => {
   it('re-classifies live when the window folds and unfolds, without a remount', () => {
@@ -31,12 +34,12 @@ describe('useDeviceProfile', () => {
 
   it('refines the platform from an async lookup', async () => {
     setViewport(1024, 1366)
-    const { result } = renderHook(() =>
-      useDeviceProfile({ loadPlatform: async () => ({ platform: 'ios', model: 'iPad13,8' }) }),
-    )
+    const loadPlatform = vi.fn(async () => ({ platform: 'ios' as const, model: 'iPad13,8' }))
+    const { result } = renderHook(() => useDeviceProfile({ loadPlatform }))
     await waitFor(() => expect(result.current.platform).toBe('ios'))
     expect(result.current.native).toBe(true)
     expect(result.current.formFactor).toBe('tablet')
+    expect(loadPlatform).toHaveBeenCalledTimes(1)
   })
 })
 
