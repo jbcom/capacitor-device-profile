@@ -41,6 +41,48 @@ describe('createAppLifecycle (native)', () => {
     expect(app.minimizeApp).toHaveBeenCalledTimes(1)
   })
 
+  it('lets many parts subscribe to pause and resume, each removing only its own', async () => {
+    const { app, emit } = fakeApp()
+    const order: string[] = []
+    const lifecycle = createAppLifecycle({
+      app,
+      native: true,
+      onPause: () => order.push('option'),
+    })
+    const stopSave = lifecycle.onPause(() => order.push('save'))
+    lifecycle.onPause(() => order.push('audio'))
+    const resumed = vi.fn()
+    const stopResume = lifecycle.onResume(resumed)
+
+    emit('appStateChange', { isActive: false })
+    expect(order).toEqual(['option', 'save', 'audio'])
+
+    stopSave()
+    emit('appStateChange', { isActive: true })
+    emit('appStateChange', { isActive: false })
+    expect(order).toEqual(['option', 'save', 'audio', 'option', 'audio'])
+    expect(resumed).toHaveBeenCalledTimes(1)
+
+    stopResume()
+    emit('appStateChange', { isActive: true })
+    expect(resumed).toHaveBeenCalledTimes(1)
+
+    await lifecycle.dispose()
+    emit('appStateChange', { isActive: false })
+    expect(order).toHaveLength(5)
+  })
+
+  it('treats the same listener subscribed twice as two subscriptions', () => {
+    const { app, emit } = fakeApp()
+    const lifecycle = createAppLifecycle({ app, native: true })
+    const heard = vi.fn()
+    const first = lifecycle.onPause(heard)
+    lifecycle.onPause(heard)
+    first()
+    emit('appStateChange', { isActive: false })
+    expect(heard).toHaveBeenCalledTimes(1)
+  })
+
   it('reports pause and resume once per transition and removes its listeners on dispose', async () => {
     const { app, emit, removed } = fakeApp()
     const onPause = vi.fn()
