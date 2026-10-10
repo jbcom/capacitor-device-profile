@@ -46,6 +46,13 @@ export interface AppLifecycleOptions {
 
 export interface AppLifecycle {
   readonly state: LifecycleState
+  /**
+   * Hears every pause from now on, after `options.onPause`; the returned function stops it. Many
+   * parts of an app (a save checkpoint, the audio, a timer) each subscribe for themselves.
+   */
+  onPause(listener: () => void): () => void
+  /** Hears every resume from now on, after `options.onResume`; the returned function stops it. */
+  onResume(listener: () => void): () => void
   /** Pushes a back handler; the returned function removes it. */
   pushBackHandler(handler: BackHandler): () => void
   /** Runs the back stack as a hardware back press would. Returns true when a handler consumed it. */
@@ -57,14 +64,30 @@ export function createAppLifecycle(options: AppLifecycleOptions): AppLifecycle {
   const handlers: BackHandler[] = []
   const handles: Promise<PluginListenerHandleLike>[] = []
   const removers: Array<() => void> = []
+  const pauseListeners = new Set<() => void>()
+  const resumeListeners = new Set<() => void>()
   let state: LifecycleState = 'active'
   let disposed = false
+
+  const subscribe = (listeners: Set<() => void>, listener: () => void) => {
+    // Wrapped, so one listener subscribed twice is two subscriptions, each removed on its own.
+    const entry = () => listener()
+    listeners.add(entry)
+    return () => {
+      listeners.delete(entry)
+    }
+  }
 
   const transition = (next: LifecycleState) => {
     if (disposed || next === state) return
     state = next
-    if (next === 'active') options.onResume?.()
-    else options.onPause?.()
+    if (next === 'active') {
+      options.onResume?.()
+      for (const listener of [...resumeListeners]) listener()
+    } else {
+      options.onPause?.()
+      for (const listener of [...pauseListeners]) listener()
+    }
   }
 
   const handleBack = (): boolean => {
@@ -109,6 +132,8 @@ export function createAppLifecycle(options: AppLifecycleOptions): AppLifecycle {
     get state() {
       return state
     },
+    onPause: (listener) => subscribe(pauseListeners, listener),
+    onResume: (listener) => subscribe(resumeListeners, listener),
     pushBackHandler(handler) {
       handlers.push(handler)
       return () => {
@@ -120,6 +145,8 @@ export function createAppLifecycle(options: AppLifecycleOptions): AppLifecycle {
     async dispose() {
       disposed = true
       handlers.length = 0
+      pauseListeners.clear()
+      resumeListeners.clear()
       for (const remove of removers.splice(0)) remove()
       const settled = await Promise.allSettled(handles.splice(0))
       await Promise.allSettled(
