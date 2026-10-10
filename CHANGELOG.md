@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/jbcom/capacitor-device-profile/compare/v0.1.4...v0.2.0) (2026-10-10)
+
+
+### Features
+
+* **lifecycle:** subscribe to pause and resume, many listeners each with its own unsubscribe ([a1371f5](https://github.com/jbcom/capacitor-device-profile/commit/a1371f5807bbd49bce3c49a84d2d80edae4a8ae3))
+* **lifecycle:** subscribe to pause and resume, many listeners each with its own unsubscribe ([8fe78a9](https://github.com/jbcom/capacitor-device-profile/commit/8fe78a9e24e638358a96faa7f51edd38b3932fb1))
+
 ## [0.1.4](https://github.com/jbcom/capacitor-device-profile/compare/v0.1.3...v0.1.4) (2026-10-08)
 
 
