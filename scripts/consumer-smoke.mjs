@@ -80,14 +80,16 @@ try {
   )
 
   const esm = `
-    import { classifyDevice, decideOrientation, createHaptics, createAppLifecycle } from 'capacitor-device-profile'
-    import { useDeviceProfile, useSafeAreaInsets, subscribeViewportGeometry } from 'capacitor-device-profile/react'
+    import { classifyDevice, decideOrientation, createHaptics, createAppLifecycle, gestureInsetsFromNative } from 'capacitor-device-profile'
+    import { useDeviceProfile, useSafeAreaInsets, useGestureInsets, subscribeViewportGeometry } from 'capacitor-device-profile/react'
     const profile = classifyDevice({ width: 821, height: 765, devicePixelRatio: 2.7625, touch: true, platform: 'web', model: '' })
     if (profile.formFactor !== 'foldable-open') throw new Error('ESM classify: ' + profile.formFactor)
     if (decideOrientation(profile, 'landscape').promptRotate) throw new Error('ESM orientation')
+    const gestures = gestureInsetsFromNative({ left: 48, right: 48, bottom: 32, density: 2 })
+    if (gestures?.insets.left !== 24 || gestures.source !== 'native') throw new Error('ESM gesture insets')
     createHaptics({ native: false }).impact()
     await createAppLifecycle({ native: false }).dispose()
-    for (const fn of [useDeviceProfile, useSafeAreaInsets, subscribeViewportGeometry]) {
+    for (const fn of [useDeviceProfile, useSafeAreaInsets, useGestureInsets, subscribeViewportGeometry]) {
       if (typeof fn !== 'function') throw new Error('ESM react export missing')
     }
     console.log('esm ok')

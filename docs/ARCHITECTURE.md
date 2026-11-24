@@ -10,6 +10,8 @@ description: Module boundaries, invariants and intentional limits of capacitor-d
 | `profile` | Pure viewport classification. No DOM access except in `readViewportFacts`. |
 | `orientation` | Pure policy over a profile. Never touches the screen. |
 | `safeArea` | Measures insets and publishes CSS variables. The only module that creates DOM nodes. |
+| `geometry` | The one subscription to resize, orientation change, visual-viewport resize and fold posture change, shared by `safeArea`, `gestureInsets` and the React bindings. |
+| `gestureInsets` | System gesture insets: the native-to-CSS-px conversion (pure), the platform fallback (pure), and a watch that publishes `--gesture-*`. Reads the safe area only for the iOS fallback. |
 | `lifecycle` | Pause/resume and the back-button stack over an injected `App` plugin or page events. |
 | `haptics` | A guarded facade over an injected `Haptics` plugin, with `navigator.vibrate` (or an injected `vibrate`) as the web fallback. |
 | `react` | Thin hooks over the modules above. The only module that imports React. |
@@ -29,7 +31,8 @@ description: Module boundaries, invariants and intentional limits of capacitor-d
 5. **Geometry changes re-classify live.** Fold posture, resize, orientation change and visual-viewport
    resize all feed the same subscription, so no reload is needed after a fold.
 6. **Failures never reach a frame loop.** A rejected haptics or `minimizeApp` call is swallowed, and so is a refused or
-   throwing `navigator.vibrate`.
+   throwing `navigator.vibrate`. A rejecting, throwing or malformed gesture-insets plugin gives the
+   platform fallback, and an answer that arrives after a newer read or after dispose is dropped.
 7. **Everything disposes.** Each subscription returns a disposer, and `dispose()` on the lifecycle also
    removes the native listener handles.
 
@@ -45,6 +48,13 @@ install the packed tarball into an empty project against npmjs only.
 ## Intentional limits
 
 - No orientation locking and no screen-wake or status-bar control.
-- No Capacitor plugin wrappers beyond the structural subsets above.
+- No Capacitor plugin wrappers beyond the structural subsets above, and no native code. System gesture
+  insets exist only natively on Android, so the app owns that plugin and passes it in as a
+  `GestureInsetsPluginLike`; the package converts and falls back. `docs/getting-started.md` carries a
+  reference Android class.
+- A gesture reading says where it came from (`source`), because a fallback zero and a native zero
+  (three-button navigation) must not look alike. Gesture insets are not part of `DeviceProfile`,
+  which stays a pure function of `ViewportFacts`; they sit beside the safe area, which is also
+  separate.
 - Thresholds are CSS-pixel based; they do not read the Window Segments API geometry beyond using its
   media query as a change signal.

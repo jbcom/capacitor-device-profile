@@ -90,6 +90,7 @@ try {
   const cjsReact = require(path.join(packageRoot, 'dist/cjs/react.cjs'))
 
   const expectedFunctions = [
+    'applyGestureInsetVariables',
     'applySafeAreaVariables',
     'classifyDevice',
     'classifyFormFactor',
@@ -98,9 +99,13 @@ try {
     'createAppLifecycle',
     'createHaptics',
     'decideOrientation',
+    'fallbackGestureInsets',
+    'gestureInsetsFromNative',
     'isFoldableOpen',
+    'readGestureInsets',
     'readSafeAreaInsets',
     'readViewportFacts',
+    'watchGestureInsets',
     'watchSafeArea',
   ]
   for (const name of expectedFunctions) {
@@ -116,7 +121,24 @@ try {
     assert.equal(esm[name], cjs[name], `${name} differs between ESM and CommonJS`)
   }
   assert.deepEqual(esm.ZERO_INSETS, cjs.ZERO_INSETS, 'ZERO_INSETS differs between builds')
-  for (const name of ['subscribeViewportGeometry', 'useDeviceProfile', 'useSafeAreaInsets']) {
+  assert.deepEqual(
+    esm.ZERO_GESTURE_INSETS,
+    cjs.ZERO_GESTURE_INSETS,
+    'ZERO_GESTURE_INSETS differs between builds',
+  )
+  // The conversion is physical px over density, identically in both builds.
+  const native = { left: 48, right: 48, bottom: 32, density: 2 }
+  assert.deepEqual(
+    esm.gestureInsetsFromNative(native),
+    cjs.gestureInsetsFromNative(native),
+    'gestureInsetsFromNative differs between builds',
+  )
+  for (const name of [
+    'subscribeViewportGeometry',
+    'useDeviceProfile',
+    'useGestureInsets',
+    'useSafeAreaInsets',
+  ]) {
     assert.equal(typeof esmReact[name], 'function', `ESM react export ${name} is missing`)
     assert.equal(typeof cjsReact[name], 'function', `CommonJS react export ${name} is missing`)
   }

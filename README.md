@@ -65,9 +65,23 @@ function Screen() {
 | `readViewportFacts(window, platform?)` | Reads `innerWidth`/`innerHeight`/DPR/touch; `null` gives a desktop default |
 | `decideOrientation(profile, preferred)` | Which orientations to accept and whether to show a "turn the device" hint. Never force-rotates; tablets and foldables accept both |
 | `watchSafeArea(options)` / `readSafeAreaInsets()` | Measures `env(safe-area-inset-*)` through a probe and publishes `--safe-top/right/bottom/left` px variables, re-measured on resize, orientation change, visual-viewport resize and fold posture change |
+| `watchGestureInsets(options)` / `readGestureInsets(options)` | The system gesture strips (Android home, quick switch and back swipe; the iOS home indicator) in CSS px as `{ source, insets, mandatory }`, republished as `--gesture-left/right/bottom`. The native numbers come from a small app-owned plugin passed in as `plugin`; without one `source` is `safe-area` (iOS: the bottom safe-area inset) or `none` (all 0, nothing reported), so a layout can tell a missing report from a real zero |
 | `createAppLifecycle({ app, native, onPause, onResume })` | Pause/resume from Capacitor `App` (native) or page visibility (web); `onPause(listener)` / `onResume(listener)` subscriptions, each returning its unsubscribe; `pushBackHandler` stack; an unconsumed back press minimises instead of exiting |
 | `createHaptics({ plugin, native, vibrate })` | `impact`, `notify`, `selection`; the native plugin when `native`, otherwise `navigator.vibrate` (or your `vibrate`) on the web, a quiet no-op where there is none (iOS Safari) and while disabled; failures never throw |
-| `capacitor-device-profile/react`: `useDeviceProfile`, `useSafeAreaInsets`, `subscribeViewportGeometry` | Live bindings: a fold or unfold re-classifies without a reload |
+| `capacitor-device-profile/react`: `useDeviceProfile`, `useSafeAreaInsets`, `useGestureInsets`, `subscribeViewportGeometry` | Live bindings: a fold or unfold re-classifies without a reload |
+
+Touch zones that start at the screen edge lose touches to the system's own gestures. Pass the app's
+native plugin and start the zones inside the reported strips:
+
+```ts
+const stop = watchGestureInsets({
+  plugin: systemGestureInsets, // registerPlugin<GestureInsetsPluginLike>('SystemGestureInsets')
+  platform: 'android',
+  onChange: ({ source, insets }) => layoutZones(source === 'native' ? insets : withOwnGuard(insets)),
+})
+```
+
+[Getting started](./docs/getting-started.md) has the Android class behind that plugin.
 
 The [API reference](./docs/API.md) has every signature and the exact classification rules.
 

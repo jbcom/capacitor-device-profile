@@ -1,4 +1,19 @@
 export {
+  applyGestureInsetVariables,
+  fallbackGestureInsets,
+  type GestureInsets,
+  type GestureInsetsOptions,
+  type GestureInsetsPluginLike,
+  type GestureInsetsReading,
+  type GestureInsetsSource,
+  type GestureInsetsWatchOptions,
+  gestureInsetsFromNative,
+  type NativeGestureInsets,
+  readGestureInsets,
+  watchGestureInsets,
+  ZERO_GESTURE_INSETS,
+} from './gestureInsets.js'
+export {
   createHaptics,
   type Haptics,
   type HapticsOptions,

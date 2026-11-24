@@ -7,6 +7,7 @@
  * hidden probe element and republishes them as `--safe-top/right/bottom/left` px variables on every
  * resize, orientation change, visual-viewport resize and fold posture change.
  */
+import { subscribeGeometry } from './geometry.js'
 
 export interface SafeAreaInsets {
   top: number
@@ -93,22 +94,9 @@ export function watchSafeArea(options: SafeAreaWatchOptions = {}): () => void {
     frame = window.requestAnimationFrame(measure)
   }
   measure()
-  window.addEventListener('resize', schedule)
-  window.addEventListener('orientationchange', schedule)
-  window.visualViewport?.addEventListener('resize', schedule)
-  const fold = foldPostureMedia(window)
-  fold?.addEventListener('change', schedule)
+  const unsubscribe = subscribeGeometry(window, schedule)
   return () => {
     if (frame !== 0) window.cancelAnimationFrame(frame)
-    window.removeEventListener('resize', schedule)
-    window.removeEventListener('orientationchange', schedule)
-    window.visualViewport?.removeEventListener('resize', schedule)
-    fold?.removeEventListener('change', schedule)
+    unsubscribe()
   }
-}
-
-/** Media query that flips when a foldable changes posture; `null` where unsupported. */
-function foldPostureMedia(win: Window): MediaQueryList | null {
-  if (typeof win.matchMedia !== 'function') return null
-  return win.matchMedia('(horizontal-viewport-segments: 2), (vertical-viewport-segments: 2)')
 }

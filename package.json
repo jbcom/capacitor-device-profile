@@ -1,7 +1,7 @@
 {
   "name": "capacitor-device-profile",
   "version": "0.3.1",
-  "description": "Mobile and foldable runtime over Capacitor: device profile (phone, foldable-open, tablet, desktop) that re-classifies live on fold and unfold, orientation policy, live safe-area insets, app lifecycle with a back-button stack, and a haptics facade.",
+  "description": "Mobile and foldable runtime over Capacitor: device profile (phone, foldable-open, tablet, desktop) that re-classifies live on fold and unfold, orientation policy, live safe-area and system gesture insets, app lifecycle with a back-button stack, and a haptics facade.",
   "type": "module",
   "license": "MIT",
   "author": "Jon Bogaty <jon@jonbogaty.com>",

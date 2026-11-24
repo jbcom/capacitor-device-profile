@@ -1,6 +1,6 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useDeviceProfile, useSafeAreaInsets } from '../src/react.js'
+import { useDeviceProfile, useGestureInsets, useSafeAreaInsets } from '../src/react.js'
 
 function setViewport(width: number, height: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
@@ -40,6 +40,36 @@ describe('useDeviceProfile', () => {
     expect(result.current.native).toBe(true)
     expect(result.current.formFactor).toBe('tablet')
     expect(loadPlatform).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('useGestureInsets', () => {
+  it('starts from the platform fallback and publishes the CSS variables', async () => {
+    const { result } = renderHook(() => useGestureInsets())
+    expect(result.current.source).toBe('none')
+    await waitFor(() =>
+      expect(document.documentElement.style.getPropertyValue('--gesture-bottom')).toBe('0px'),
+    )
+  })
+
+  it('replaces the fallback with the native reading, converted to CSS px', async () => {
+    const plugin = {
+      getGestureInsets: vi.fn(async () => ({ left: 60, right: 60, bottom: 40, density: 2.5 })),
+    }
+    const { result } = renderHook(() => useGestureInsets({ plugin, platform: 'android' }))
+    expect(result.current.source).toBe('none')
+    await waitFor(() => expect(result.current.source).toBe('native'))
+    expect(result.current.insets).toEqual({ left: 24, right: 24, bottom: 16 })
+  })
+
+  it('stops watching on unmount', async () => {
+    const plugin = { getGestureInsets: vi.fn(async () => ({ left: 1, right: 1, bottom: 1 })) }
+    const { unmount } = renderHook(() => useGestureInsets({ plugin }))
+    await waitFor(() => expect(plugin.getGestureInsets).toHaveBeenCalledTimes(1))
+    unmount()
+    window.dispatchEvent(new Event('resize'))
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    expect(plugin.getGestureInsets).toHaveBeenCalledTimes(1)
   })
 })
 
