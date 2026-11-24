@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/jbcom/capacitor-device-profile/compare/v0.3.0...v0.3.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* **lint:** adopt biome 2.6 and hoist components; declare sourcey link types ([1178e78](https://github.com/jbcom/capacitor-device-profile/commit/1178e78923d71f019e52e72d1a9d78fe3b8a4fac))
+
 ## [0.3.0](https://github.com/jbcom/capacitor-device-profile/compare/v0.2.0...v0.3.0) (2026-11-24)
 
 
