@@ -66,7 +66,7 @@ function Screen() {
 | `decideOrientation(profile, preferred)` | Which orientations to accept and whether to show a "turn the device" hint. Never force-rotates; tablets and foldables accept both |
 | `watchSafeArea(options)` / `readSafeAreaInsets()` | Measures `env(safe-area-inset-*)` through a probe and publishes `--safe-top/right/bottom/left` px variables, re-measured on resize, orientation change, visual-viewport resize and fold posture change |
 | `createAppLifecycle({ app, native, onPause, onResume })` | Pause/resume from Capacitor `App` (native) or page visibility (web); `onPause(listener)` / `onResume(listener)` subscriptions, each returning its unsubscribe; `pushBackHandler` stack; an unconsumed back press minimises instead of exiting |
-| `createHaptics({ plugin, native })` | `impact`, `notify`, `selection`; no-ops on the web and while disabled; plugin failures never throw |
+| `createHaptics({ plugin, native, vibrate })` | `impact`, `notify`, `selection`; the native plugin when `native`, otherwise `navigator.vibrate` (or your `vibrate`) on the web, a quiet no-op where there is none (iOS Safari) and while disabled; failures never throw |
 | `capacitor-device-profile/react`: `useDeviceProfile`, `useSafeAreaInsets`, `subscribeViewportGeometry` | Live bindings: a fold or unfold re-classifies without a reload |
 
 The [API reference](./docs/API.md) has every signature and the exact classification rules.

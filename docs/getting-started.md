@@ -74,4 +74,8 @@ const removeBackHandler = lifecycle.pushBackHandler(() => {
 haptics.impact('medium')
 ```
 
+In a native shell the calls go to Capacitor's plugin. On the web they fall back to `navigator.vibrate`
+where the browser has it (after the player's first interaction with the page); iOS Safari has no
+Vibration API, so there they do nothing. Pass `vibrate` to supply your own function instead.
+
 Call `lifecycle.dispose()` and the safe-area disposer when the app tears down.

@@ -11,7 +11,7 @@ description: Module boundaries, invariants and intentional limits of capacitor-d
 | `orientation` | Pure policy over a profile. Never touches the screen. |
 | `safeArea` | Measures insets and publishes CSS variables. The only module that creates DOM nodes. |
 | `lifecycle` | Pause/resume and the back-button stack over an injected `App` plugin or page events. |
-| `haptics` | A guarded facade over an injected `Haptics` plugin. |
+| `haptics` | A guarded facade over an injected `Haptics` plugin, with `navigator.vibrate` (or an injected `vibrate`) as the web fallback. |
 | `react` | Thin hooks over the modules above. The only module that imports React. |
 
 ## Invariants
@@ -28,7 +28,8 @@ description: Module boundaries, invariants and intentional limits of capacitor-d
    tablet. The thresholds come from a measured device and move only with a measurement.
 5. **Geometry changes re-classify live.** Fold posture, resize, orientation change and visual-viewport
    resize all feed the same subscription, so no reload is needed after a fold.
-6. **Failures never reach a frame loop.** A rejected haptics or `minimizeApp` call is swallowed.
+6. **Failures never reach a frame loop.** A rejected haptics or `minimizeApp` call is swallowed, and so is a refused or
+   throwing `navigator.vibrate`.
 7. **Everything disposes.** Each subscription returns a disposer, and `dispose()` on the lifecycle also
    removes the native listener handles.
 

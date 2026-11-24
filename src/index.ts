@@ -5,6 +5,7 @@ export {
   type HapticsPluginLike,
   type ImpactStrength,
   type NotificationKind,
+  type VibrateFunction,
 } from './haptics.js'
 export {
   type AppLifecycle,
