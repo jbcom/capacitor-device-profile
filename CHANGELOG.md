@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/jbcom/capacitor-device-profile/compare/v0.3.2...v0.4.0) (2026-11-24)
+
+
+### Features
+
+* **gesture-insets:** report system gesture insets alongside the safe area ([55dc67f](https://github.com/jbcom/capacitor-device-profile/commit/55dc67f4acc0f13648a07a3e21a389bf928fba4a))
+* **gesture-insets:** report system gesture insets alongside the safe area ([4a42ce0](https://github.com/jbcom/capacitor-device-profile/commit/4a42ce0cdf6cea43bbc5c05b5b018b4a1bd4b1e4))
+
+
+### Bug Fixes
+
+* **gesture-insets:** keep an answer older than the newest read but newer than the last applied ([d96005a](https://github.com/jbcom/capacitor-device-profile/commit/d96005a1101c650e9bd2d5cdaf5790558bf43e1b))
+
 ## [0.3.2](https://github.com/jbcom/capacitor-device-profile/compare/v0.3.1...v0.3.2) (2026-11-24)
 
 
