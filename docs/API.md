@@ -94,10 +94,38 @@ callbacks.
 
 ### `createHaptics(options): Haptics`
 
-Options: `native`, `plugin` (Capacitor's `Haptics` plugin), `enabled` (default `true`). Methods:
+Options: `native`, `plugin` (Capacitor's `Haptics` plugin), `enabled` (default `true`), `vibrate`
+(a `VibrateFunction`, `(pattern: number | number[]) => boolean`; default `navigator.vibrate`). Methods:
 `impact(strength?)` with `light`, `medium` or `heavy`; `notify(kind)` with `success`, `warning` or
-`error`; `selection()`; `setEnabled(boolean)` and the `enabled` getter. Off the native platform, or
-while disabled, every call does nothing. A rejected plugin call is swallowed.
+`error`; `selection()`; `setEnabled(boolean)` and the `enabled` getter. While disabled, every call does
+nothing. A rejected plugin call is swallowed.
+
+The native plugin wins: when `native` is true and a `plugin` is passed, only the plugin is called and
+`vibrate` is never used. Otherwise (`native` is false, or no plugin was passed) the web fallback runs
+over `vibrate`. When `vibrate` is not passed it is `navigator.vibrate`, looked up at each call and
+called as a method of `navigator`, and where the browser has none every call does nothing.
+
+| Call | Vibration (ms) |
+| --- | --- |
+| `impact('light')` (the default) | `12` |
+| `impact('medium')` | `24` |
+| `impact('heavy')` | `40` |
+| `notify('success')` | `[20, 40, 40]` |
+| `notify('warning')` | `[30, 60, 30]` |
+| `notify('error')` | `[50, 40, 50, 40, 50]` |
+| `selection()` | `8` |
+
+Array patterns alternate vibrate and pause, starting with a vibration. The fallback never throws: a
+`false` return (the browser declined, usually because the page has had no user gesture yet or the
+user turned vibration off) and a thrown error (blocked by policy or an embedded frame) are both
+ignored.
+
+The Vibration API is not Baseline: it exists only where the browser implements it (for example
+Chromium on Android), and it needs sticky user activation, so a call made before the player has
+touched the page is declined. iOS Safari has no `navigator.vibrate`, so on an iPhone or iPad web page
+the fallback is a quiet no-op; haptics there need the native plugin in a Capacitor shell. A device
+without a vibration motor ignores the call. Pass `vibrate` to supply your own function instead, for
+example a test spy or a wrapper that applies your own rules.
 
 ## React bindings
 

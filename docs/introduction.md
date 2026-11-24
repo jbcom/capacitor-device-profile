@@ -19,7 +19,7 @@ version and every module is unit-testable without a device.
 | Rotating a phone is demanded or forced | A hint-only orientation decision; tablets and foldables are never nagged |
 | `env(safe-area-inset-*)` is stale after a fold or a cut-out change | Probe-measured insets republished as `--safe-*` variables on every geometry change |
 | A stray Android Back press exits the app | A back-handler stack; an unconsumed press minimises |
-| A missing buzz throws into the frame loop | A haptics facade that no-ops off native and swallows plugin failures |
+| A missing buzz throws into the frame loop | A haptics facade over the native plugin, with `navigator.vibrate` on the web and a quiet no-op where there is none; it swallows failures |
 
 Start with [Getting started](./getting-started/), then use the [API reference](./API/) for signatures
 and the [architecture notes](./ARCHITECTURE/) for the invariants behind them.
