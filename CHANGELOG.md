@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/jbcom/capacitor-device-profile/compare/v0.3.1...v0.3.2) (2026-11-24)
+
+
+### Bug Fixes
+
+* **deps:** override vulnerable transitive docs-toolchain packages ([700aa73](https://github.com/jbcom/capacitor-device-profile/commit/700aa737d1f9dd1f4bcb13cf7e1732678712a5ac))
+* **deps:** override vulnerable transitive docs-toolchain packages ([ef292c3](https://github.com/jbcom/capacitor-device-profile/commit/ef292c31ff62ebc46b13af94bd8b160ea17bf9f5))
+
 ## [0.3.1](https://github.com/jbcom/capacitor-device-profile/compare/v0.3.0...v0.3.1) (2026-11-24)
 
 
