@@ -173,8 +173,9 @@ export function applyGestureInsetVariables(
 /**
  * Reads the insets now and again after every geometry change (the same events as `watchSafeArea`),
  * publishing `--gesture-left/right/bottom` px variables and calling `onChange`. The first reading
- * arrives on the next microtask, later ones after the next animation frame. A reading that resolves
- * after a newer one started, or after dispose, is dropped. Returns a disposer; outside a browser it
+ * arrives when the first read resolves (the next microtask without a plugin), later ones after the
+ * next animation frame. A reading that resolves after a newer one was applied, or after dispose, is
+ * dropped. Returns a disposer; outside a browser it
  * returns a no-op.
  */
 export function watchGestureInsets(options: GestureInsetsWatchOptions = {}): () => void {
@@ -182,13 +183,17 @@ export function watchGestureInsets(options: GestureInsetsWatchOptions = {}): () 
   const target = options.target ?? document.documentElement
   const prefix = options.prefix ?? '--gesture-'
   let frame = 0
-  let turn = 0
+  let started = 0
+  let applied = 0
   let disposed = false
   const measure = () => {
     frame = 0
-    const mine = ++turn
+    const mine = ++started
     void readGestureInsets(options).then((reading) => {
-      if (disposed || mine !== turn) return
+      // An answer older than one already applied is stale; one that is merely not the newest
+      // started is still the best known, so a burst of geometry events cannot starve the reading.
+      if (disposed || mine < applied) return
+      applied = mine
       applyGestureInsetVariables(reading.insets, target, prefix)
       options.onChange?.(reading)
     })

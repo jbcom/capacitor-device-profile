@@ -221,6 +221,23 @@ describe('watchGestureInsets', () => {
     dispose()
   })
 
+  it('still applies an answer when a newer read has started but not answered', async () => {
+    const first = deferred<NativeGestureInsets>()
+    const never = deferred<NativeGestureInsets>()
+    const queue = [first, never]
+    const onChange = vi.fn()
+    const dispose = watchGestureInsets({
+      plugin: { getGestureInsets: () => queue.shift()?.promise as Promise<NativeGestureInsets> },
+      onChange,
+    })
+    window.dispatchEvent(new Event('resize'))
+    await frame()
+    first.resolve({ left: 8, right: 8, bottom: 8, density: 1 })
+    await settle()
+    expect(onChange).toHaveBeenCalledTimes(1)
+    dispose()
+  })
+
   it('drops an answer that resolves after dispose, and cancels a pending frame', async () => {
     const pending = deferred<NativeGestureInsets>()
     const onChange = vi.fn()

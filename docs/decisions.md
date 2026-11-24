@@ -80,7 +80,7 @@ safe-area inset (the home indicator) and no side strips, as `safe-area`.
 
 **Why not in `DeviceProfile`.** The profile is a pure function of `ViewportFacts`, and the safe area
 is already separate from it. The insets are async native data, so they get a watch of their own on
-the same geometry events, with a sequence guard that drops answers arriving out of order.
+the same geometry events, with a sequence guard that drops an answer older than one already applied.
 
 **What is not verified.** The Java class compiles against the Android 16 platform API and the
 Capacitor 8.3.1 plugin signatures; it has not been run on a device.

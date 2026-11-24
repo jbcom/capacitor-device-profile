@@ -88,11 +88,11 @@ first reading is the platform fallback; the native one replaces it when the plug
 plugin from module scope, as above, so the watch is not restarted on every render.
 
 The plugin is app-owned native code, kept out of this package so it pins no Capacitor version. For
-Android it is one class: copy it into the app's Java sources, register it in `MainActivity` before
-`super.onCreate`, and run `npx cap sync`.
+Android it is one class: copy it into the app's own Java sources (under the app's package, which
+replaces `your.app.package` below) and register it in `MainActivity` before `super.onCreate`.
 
 ```java
-package com.example.app;
+package your.app.package;
 
 import android.graphics.Insets;
 import android.os.Build;
@@ -140,6 +140,9 @@ public class SystemGestureInsetsPlugin extends Plugin {
 ```
 
 ```java
+import android.os.Bundle;
+import com.getcapacitor.BridgeActivity;
+
 public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {

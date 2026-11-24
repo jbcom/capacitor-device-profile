@@ -137,8 +137,8 @@ visual-viewport `resize` and fold-posture change (the events `watchSafeArea` use
 `--gesture-left`, `--gesture-right` and `--gesture-bottom` (px, from `insets`) and calls
 `onChange(reading)`. Options: those of `readGestureInsets`, plus `target` (default
 `document.documentElement`), `prefix` (default `--gesture-`) and `onChange`. The first reading arrives
-on the next microtask. A reading that resolves after a newer one started, or after dispose, is
-dropped. Returns a disposer that removes every listener; outside a browser it returns a no-op.
+when the first read resolves (the next microtask without a plugin). A reading that resolves after a
+newer one was applied, or after dispose, is dropped. Returns a disposer that removes every listener; outside a browser it returns a no-op.
 
 ### `applyGestureInsetVariables(insets, target, prefix?)`
 
