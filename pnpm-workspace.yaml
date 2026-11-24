@@ -9,4 +9,4 @@ minimumReleaseAgeExclude:
   # Sourcey currently resolves this exact svgo release. Keep the normal 24-hour
   # age policy for every other package and future svgo version.
   - svgo@4.1.0
-  - '@capacitor/core@8.5.3'
+  - "@capacitor/core@8.5.3"

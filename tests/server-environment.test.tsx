@@ -6,12 +6,19 @@ import { describe, expect, it } from 'vitest'
 import {
   classifyDevice,
   createAppLifecycle,
+  type FormFactor,
   readSafeAreaInsets,
   readViewportFacts,
+  type SafeAreaInsets,
   watchSafeArea,
   ZERO_INSETS,
 } from '../src/index.js'
 import { useDeviceProfile, useSafeAreaInsets } from '../src/react.js'
+
+function Probe({ onRead }: { onRead: (formFactor: FormFactor, insets: SafeAreaInsets) => void }) {
+  onRead(useDeviceProfile().formFactor, useSafeAreaInsets())
+  return null
+}
 
 describe('without a browser', () => {
   it('reads a 1280x720 non-touch desktop default', () => {
@@ -58,11 +65,7 @@ describe('without a browser', () => {
 
   it('renders the hooks on the server with desktop and zero-inset defaults', () => {
     const seen: unknown[] = []
-    function Probe() {
-      seen.push(useDeviceProfile().formFactor, useSafeAreaInsets())
-      return null
-    }
-    renderToString(<Probe />)
+    renderToString(<Probe onRead={(formFactor, insets) => seen.push(formFactor, insets)} />)
     expect(seen).toEqual(['desktop', { ...ZERO_INSETS }])
   })
 })

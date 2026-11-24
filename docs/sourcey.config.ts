@@ -30,16 +30,18 @@ export default defineConfig({
   navbar: {
     links: [
       { type: 'github', href: 'https://github.com/jbcom/capacitor-device-profile' },
-      { label: 'npm', href: 'https://www.npmjs.com/package/capacitor-device-profile' },
+      { type: 'npm', href: 'https://www.npmjs.com/package/capacitor-device-profile' },
     ],
   },
   footer: {
     links: [
       {
+        type: 'link',
         label: 'MIT License',
         href: 'https://github.com/jbcom/capacitor-device-profile/blob/main/LICENSE',
       },
       {
+        type: 'link',
         label: 'Security',
         href: 'https://github.com/jbcom/capacitor-device-profile/security/policy',
       },
