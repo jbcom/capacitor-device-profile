@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/jbcom/capacitor-device-profile/compare/v0.2.0...v0.3.0) (2026-11-24)
+
+
+### Features
+
+* **haptics:** fall back to navigator.vibrate on the web ([5ff04f1](https://github.com/jbcom/capacitor-device-profile/commit/5ff04f1540272939f66969ce9dd1554e138ef3d6))
+* **haptics:** fall back to navigator.vibrate on the web ([3153dc9](https://github.com/jbcom/capacitor-device-profile/commit/3153dc9f75602c801b41bd6c0e2a150ec8858462)), closes [#28](https://github.com/jbcom/capacitor-device-profile/issues/28)
+
 ## [0.2.0](https://github.com/jbcom/capacitor-device-profile/compare/v0.1.4...v0.2.0) (2026-10-10)
 
 
