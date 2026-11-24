@@ -2,7 +2,7 @@
 
 > A small mobile and foldable runtime for web apps and games in a Capacitor shell: a device profile
 > (phone, foldable-open, tablet, desktop) that re-classifies live on fold and unfold, an orientation
-> rule that never force-rotates, live safe-area insets, an app lifecycle with a back-button stack,
+> rule that never force-rotates, live safe-area and system gesture insets, an app lifecycle with a back-button stack,
 > and a haptics facade. No runtime dependencies; Capacitor plugins are passed in.
 
 ## Docs

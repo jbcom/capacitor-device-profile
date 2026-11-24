@@ -7,16 +7,31 @@ import {
   classifyDevice,
   createAppLifecycle,
   type FormFactor,
+  type GestureInsetsReading,
+  readGestureInsets,
   readSafeAreaInsets,
   readViewportFacts,
   type SafeAreaInsets,
+  watchGestureInsets,
   watchSafeArea,
+  ZERO_GESTURE_INSETS,
   ZERO_INSETS,
 } from '../src/index.js'
-import { useDeviceProfile, useSafeAreaInsets } from '../src/react.js'
+import { useDeviceProfile, useGestureInsets, useSafeAreaInsets } from '../src/react.js'
 
 function Probe({ onRead }: { onRead: (formFactor: FormFactor, insets: SafeAreaInsets) => void }) {
   onRead(useDeviceProfile().formFactor, useSafeAreaInsets())
+  return null
+}
+
+function GesturesProbe({
+  platform,
+  onRead,
+}: {
+  platform: 'web' | 'ios'
+  onRead: (reading: GestureInsetsReading) => void
+}) {
+  onRead(useGestureInsets({ platform }))
   return null
 }
 
@@ -67,5 +82,26 @@ describe('without a browser', () => {
     const seen: unknown[] = []
     renderToString(<Probe onRead={(formFactor, insets) => seen.push(formFactor, insets)} />)
     expect(seen).toEqual(['desktop', { ...ZERO_INSETS }])
+  })
+
+  it('reports no gesture insets, and watching them is a no-op', async () => {
+    expect(watchGestureInsets()()).toBeUndefined()
+    expect(await readGestureInsets()).toEqual({
+      source: 'none',
+      insets: { ...ZERO_GESTURE_INSETS },
+      mandatory: { ...ZERO_GESTURE_INSETS },
+    })
+    expect(await readGestureInsets({ platform: 'ios' })).toMatchObject({
+      source: 'safe-area',
+      insets: { bottom: 0 },
+    })
+  })
+
+  it('renders the gesture hook on the server with the platform fallback', () => {
+    const seen: GestureInsetsReading[] = []
+    const onRead = (reading: GestureInsetsReading) => seen.push(reading)
+    renderToString(<GesturesProbe platform="web" onRead={onRead} />)
+    renderToString(<GesturesProbe platform="ios" onRead={onRead} />)
+    expect(seen.map((reading) => reading.source)).toEqual(['none', 'safe-area'])
   })
 })

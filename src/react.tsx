@@ -1,9 +1,16 @@
 /**
- * React bindings: a live device profile and live safe-area insets. Both re-read on resize,
+ * React bindings: a live device profile, live safe-area insets and live gesture insets. All re-read on resize,
  * orientation change, visual-viewport resize and fold posture change, so a foldable switches layout
  * when it is folded or unfolded without a reload.
  */
 import { useEffect, useState } from 'react'
+import { subscribeGeometry } from './geometry.js'
+import {
+  fallbackGestureInsets,
+  type GestureInsetsOptions,
+  type GestureInsetsReading,
+  watchGestureInsets,
+} from './gestureInsets.js'
 import {
   classifyDevice,
   type DeviceProfile,
@@ -25,20 +32,7 @@ const WEB: PlatformFacts = { platform: 'web', model: '' }
 
 /** Subscribes to every event that changes viewport geometry, including fold posture changes. */
 export function subscribeViewportGeometry(callback: () => void): () => void {
-  const fold =
-    typeof window.matchMedia === 'function'
-      ? window.matchMedia('(horizontal-viewport-segments: 2), (vertical-viewport-segments: 2)')
-      : null
-  window.addEventListener('resize', callback)
-  window.addEventListener('orientationchange', callback)
-  window.visualViewport?.addEventListener('resize', callback)
-  fold?.addEventListener('change', callback)
-  return () => {
-    window.removeEventListener('resize', callback)
-    window.removeEventListener('orientationchange', callback)
-    window.visualViewport?.removeEventListener('resize', callback)
-    fold?.removeEventListener('change', callback)
-  }
+  return subscribeGeometry(window, callback)
 }
 
 export function useDeviceProfile(options: UseDeviceProfileOptions = {}): DeviceProfile {
@@ -77,4 +71,25 @@ export function useSafeAreaInsets(): SafeAreaInsets {
   )
   useEffect(() => watchSafeArea({ onChange: setInsets }), [])
   return insets
+}
+
+/**
+ * Live system gesture insets; also publishes `--gesture-*` CSS variables on the root element. The
+ * first render holds the platform fallback; a native reading replaces it when the plugin answers.
+ * Keep `plugin` referentially stable (module scope or `useMemo`): a new one restarts the watch.
+ */
+export function useGestureInsets(
+  options: Pick<GestureInsetsOptions, 'plugin' | 'platform'> = {},
+): GestureInsetsReading {
+  const { plugin, platform = 'web' } = options
+  const [reading, setReading] = useState<GestureInsetsReading>(() =>
+    fallbackGestureInsets(platform, {
+      bottom: typeof document === 'undefined' ? 0 : readSafeAreaInsets(document).bottom,
+    }),
+  )
+  useEffect(
+    () => watchGestureInsets({ plugin, platform, onChange: setReading }),
+    [plugin, platform],
+  )
+  return reading
 }

@@ -74,6 +74,76 @@ visual-viewport `resize` and fold-posture media-query change. Options: `target` 
 `document.documentElement`), `prefix`, `onChange(insets)`. Returns a disposer that removes every
 listener; outside a browser it returns a no-op.
 
+## System gesture insets
+
+The strips along the screen edges where the operating system owns a swipe: Android's home and
+quick-switch gesture (bottom, cannot be opted out of) and its back gesture (an inward swipe from
+either side), and iOS's home indicator. A touch that goes down inside one starts a system gesture
+instead of reaching the page, so a game starts its touch zones inside them. All values are CSS
+pixels. There is no `top`: the top edge is the status bar, not a swipe.
+
+No web API reports them, and `env(safe-area-inset-*)` does not include them. On Android they exist
+only natively (`WindowInsets.Type.systemGestures()`), so the app passes in a small plugin of its own
+(see [Getting started](./getting-started/)) and this package converts its answer. Without one, the
+answer is a fallback, and `source` says which kind of answer it is:
+
+| `source` | Where | Values |
+| --- | --- | --- |
+| `native` | The plugin answered | Reported by the platform, converted to CSS px. Three-button navigation reports 0 sides here; that is a real answer, not a missing one |
+| `safe-area` | iOS with no usable plugin answer | `bottom` is the bottom safe-area inset (the home indicator's swipe-up strip); `left` and `right` are 0 |
+| `none` | Web, desktop, Android without a plugin, or a plugin that cannot answer | All 0. Nothing was reported: apply your own guard |
+
+Because `none` and a real zero look alike in the numbers, branch on `source`: a layout that wants a
+side guard where nothing reports one applies it when `source !== 'native'`.
+
+### `GestureInsetsReading`
+
+`{ source, insets, mandatory }`. `insets` is every system gesture strip, including the back swipe an
+app may ask the system to leave to it. `mandatory` is the strips an app cannot opt out of (a subset of
+`insets`); when the plugin does not report them separately it equals `insets`, the safe over-estimate.
+Each is `{ left, right, bottom }`. A game that excludes the side edges starts its zones inside
+`mandatory` only; one that does not starts them inside `insets`.
+
+### `GestureInsetsPluginLike`
+
+`{ getGestureInsets(): Promise<NativeGestureInsets> }`, where `NativeGestureInsets` is
+`{ left, right, bottom, mandatory?, density? }` in **physical** pixels, as Android's `Insets` holds
+them, with `density` the display density (`DisplayMetrics.density`). The plugin rejects when the
+platform cannot answer (before Android 11, or before the WebView has a window); that is treated as
+`none`. The insets are the window's, so they match the WebView's edges only when the app draws edge
+to edge (an app targeting Android 15 or later does by default).
+
+### `gestureInsetsFromNative(native, fallbackDensity?): GestureInsetsReading | null`
+
+The conversion, pure: `css = physical / density`, with a negative value clamped to 0. The density is
+`native.density`, else `fallbackDensity` (default 1). Returns `null`, so a caller falls back, when the
+density is not a positive finite number or any value is not finite.
+
+### `fallbackGestureInsets(platform, safeArea): GestureInsetsReading`
+
+The fallback, pure: `ios` gives the `safe-area` row above from `safeArea.bottom`; every other platform
+gives the `none` row.
+
+### `readGestureInsets(options?): Promise<GestureInsetsReading>`
+
+Reads once. Options: `plugin`, `platform` (default `web`) and `document`. With a plugin, the answer is
+converted using the plugin's density, else the window's `devicePixelRatio`. Never rejects: a missing,
+rejecting, throwing or malformed plugin gives the fallback for `platform`.
+
+### `watchGestureInsets(options?): () => void`
+
+Reads now and again, on the next animation frame, after every `resize`, `orientationchange`,
+visual-viewport `resize` and fold-posture change (the events `watchSafeArea` uses), then publishes
+`--gesture-left`, `--gesture-right` and `--gesture-bottom` (px, from `insets`) and calls
+`onChange(reading)`. Options: those of `readGestureInsets`, plus `target` (default
+`document.documentElement`), `prefix` (default `--gesture-`) and `onChange`. The first reading arrives
+when the first read resolves (the next microtask without a plugin). A reading that resolves after a
+newer one was applied, or after dispose, is dropped. Returns a disposer that removes every listener; outside a browser it returns a no-op.
+
+### `applyGestureInsetVariables(insets, target, prefix?)`
+
+Writes the three variables (px) on `target`. `ZERO_GESTURE_INSETS` is the all-zero value.
+
 ## App lifecycle
 
 ### `createAppLifecycle(options): AppLifecycle`
@@ -139,6 +209,13 @@ as `() => Device.getInfo()`; the profile re-classifies when it resolves).
 
 Live insets from `watchSafeArea`; also publishes the `--safe-*` variables on the root element.
 
+### `useGestureInsets(options?): GestureInsetsReading`
+
+Live gesture insets from `watchGestureInsets`; also publishes the `--gesture-*` variables on the root
+element. Options: `plugin` and `platform`. The first render holds the fallback for `platform`, and a
+native reading replaces it when the plugin answers. Keep `plugin` referentially stable (module scope
+or `useMemo`): a new one restarts the watch.
+
 ### `subscribeViewportGeometry(callback): () => void`
 
 Subscribes to `resize`, `orientationchange`, visual-viewport `resize` and the fold-posture media query.
@@ -148,4 +225,5 @@ Returns the unsubscribe function.
 
 `AppPluginLike`, `HapticsPluginLike` and `PluginListenerHandleLike` are the structural subsets of the
 Capacitor 8 plugins this package uses. A type test keeps the real `@capacitor/app` and
-`@capacitor/haptics` plugin types assignable to them.
+`@capacitor/haptics` plugin types assignable to them. `GestureInsetsPluginLike` describes a plugin the
+app writes itself; no published Capacitor plugin reports system gesture insets.

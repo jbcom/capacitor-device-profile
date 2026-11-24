@@ -58,6 +58,33 @@ CD run remain as evidence and are not moved, deleted, or retried. This recovery 
 Release Please for v0.1.4 from the repaired `main` source so the existing OIDC CD
 workflow verifies and publishes a distinct, correctly tagged artifact.
 
+## 2026-11-24: system gesture insets, with the native side owned by the app
+
+**Decision.** `watchGestureInsets`, `readGestureInsets`, `useGestureInsets` and the pure
+`gestureInsetsFromNative` and `fallbackGestureInsets` report the system gesture strips (left, right,
+bottom, CSS px) next to the safe area. 0.3.x exposed none: `readSafeAreaInsets` measures
+`env(safe-area-inset-*)`, which does not include them.
+
+**Why a plugin the app owns.** No web API reports gesture insets, and no published Capacitor plugin
+does either. Android has them only natively (`WindowInsets.Type.systemGestures()`). Shipping that
+native code here would break the invariants that the package has no Capacitor import, pins no
+Capacitor version and wraps no plugins, would make every consumer's `cap sync` compile Android code
+no CI here builds, and would change what the package publishes. So the app registers a one-class
+plugin (a reference is in `getting-started.md`) and passes it in as `GestureInsetsPluginLike`; the
+package owns the conversion (physical px over density) and the fallback, which are what unit-test.
+
+**Why `source`.** A fallback zero and a native zero (three-button navigation reports no side strips)
+look alike, and a layout wants its own side guard in one case and not the other. Every reading says
+`native`, `safe-area` or `none`. iOS has no plugin answer to convert, so it reports the bottom
+safe-area inset (the home indicator) and no side strips, as `safe-area`.
+
+**Why not in `DeviceProfile`.** The profile is a pure function of `ViewportFacts`, and the safe area
+is already separate from it. The insets are async native data, so they get a watch of their own on
+the same geometry events, with a sequence guard that drops an answer older than one already applied.
+
+**What is not verified.** The Java class compiles against the Android 16 platform API and the
+Capacitor 8.3.1 plugin signatures; it has not been run on a device.
+
 ## The description does not advertise a `?probe=viewport` overlay
 
 The package never shipped one; `safeArea.ts` measures through a hidden probe element.
